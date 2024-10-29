@@ -1,5 +1,5 @@
 public class Checker {
-    private static final String Black = "\u001B[30m";
+    public static final String Black = "\u001B[30m";
     public static final String Reset = "\u001B[0m";
 
 
