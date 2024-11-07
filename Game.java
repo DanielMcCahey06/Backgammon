@@ -184,6 +184,34 @@ public class Game {
                 pipCount();
                 return true;
             }
+            case "DICE" -> {
+                Scanner scanner = new Scanner(System.in);
+                int[] bothValues = new int[2];
+                System.out.println("Enter the two dice values: ");
+                String values = scanner.nextLine();
+                String[] parts = values.split(" ");
+
+                if (parts.length != 2) {
+                    errorMessage("Enter exactly two values");
+                    return false;
+                } else {
+                    try {
+                        bothValues[0] = Integer.parseInt(parts[0]);
+                        bothValues[1] = Integer.parseInt(parts[1]);
+                        if ( bothValues[0] < 1 || bothValues[1] < 1 || bothValues[0] > 6 || bothValues[1] > 6) {
+                            errorMessage("Error : Each dice value must be between 1 and 6");
+                            return false;
+                        }
+
+                        int[] roll = Dice.roll(bothValues[0], bothValues[1]);
+                        outputMessage("Dice roll:" + Dice.diceFace(roll[0]) + " " + Dice.diceFace(roll[1]));
+                        return true;
+                    } catch (NumberFormatException e) {
+                        errorMessage("Invalid input. Enter two integer values!");
+                        return false;
+                    }
+                }
+            }
             default -> {
                 errorMessage("Invalid command");
                 return false;
@@ -202,9 +230,5 @@ public class Game {
                 }
             }
         outputMessage("⚪ Pip count : " + noOfPipsWhite + "  ⚫ Pip count : " + noOfPipsBlack);
-    }
-
-    private void possibleMoves(int [] roll) {
-
     }
 }

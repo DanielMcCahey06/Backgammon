@@ -23,4 +23,8 @@ public class Dice {
             default -> "";
         };
     }
+
+    public static int[] roll(int val1, int val2) {
+        return new int[]{val1, val2};
+    }
 }
