@@ -18,10 +18,20 @@ public class Pile {
         return checkers.size();
     }
 
-    @Override
-    public String toString() {
-        if (checkers.isEmpty()) {
-            return "   ";
-        } return checkers.getFirst().toString() + getNoOfCheckers() + " ";
+    public Checker.Colour getColour() {
+        if (!checkers.isEmpty()) {
+            return checkers.getFirst().getColour();
+        } else {
+            return null;
+        }
     }
+    public Checker get(int index) {
+        return checkers.get(index);
+    }
+
+    /*public boolean canAddChecker(Checker checker) {
+        if (checkers.isEmpty()) {
+            return true;
+        } else if (checkers.contains(getColour() == checker.getColour())) {}
+    }*/
 }

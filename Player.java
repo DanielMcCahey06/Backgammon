@@ -13,6 +13,6 @@ public class Player {
     }
 
     public String getDisplay() {
-        return checker == Checker.Colour.WHITE ? "O" : Checker.Black + "@" + Checker.Reset;
+        return checker == Checker.Colour.WHITE ? "⚪" : "⚫";
     }
 }

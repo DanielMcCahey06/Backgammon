@@ -1,7 +1,4 @@
 public class Checker {
-    public static final String Black = "\u001B[30m";
-    public static final String Reset = "\u001B[0m";
-
 
     public enum Colour {
         WHITE, BLACK
@@ -18,7 +15,8 @@ public class Checker {
     }
 
     public String toString() {
-        return colour == Colour.WHITE ? "O" : Black + "@" + Reset;
-    }
+
+        return colour == Colour.WHITE ? "⚪" : "⚫";
+}
 
 }
