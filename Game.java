@@ -58,6 +58,32 @@ public class Game {
         board.addChecker(0, new Checker(Checker.Colour.BLACK));
         board.addChecker(0, new Checker(Checker.Colour.BLACK));
 
+        // bar tester
+        /*board.addBarChecker(0 , new Checker(Checker.Colour.BLACK));
+        board.addBarChecker(0 , new Checker(Checker.Colour.BLACK));
+        board.addBarChecker(0 , new Checker(Checker.Colour.BLACK));
+        board.addBarChecker(0 , new Checker(Checker.Colour.BLACK));
+        board.addBarChecker(1 , new Checker(Checker.Colour.WHITE));
+        board.addBarChecker(1 , new Checker(Checker.Colour.WHITE));
+        board.addBarChecker(1 , new Checker(Checker.Colour.WHITE));
+        board.addBarChecker(1 , new Checker(Checker.Colour.WHITE));
+        board.addBarChecker(1 , new Checker(Checker.Colour.WHITE));
+        board.addBarChecker(1 , new Checker(Checker.Colour.WHITE));*/
+
+        // home tester
+        /*board.addHomeChecker(0, new Checker(Checker.Colour.BLACK));
+        board.addHomeChecker(0, new Checker(Checker.Colour.BLACK));
+        board.addHomeChecker(0, new Checker(Checker.Colour.BLACK));
+        board.addHomeChecker(0, new Checker(Checker.Colour.BLACK));
+        board.addHomeChecker(0, new Checker(Checker.Colour.BLACK));
+        board.addHomeChecker(0, new Checker(Checker.Colour.BLACK));
+        board.addHomeChecker(1, new Checker(Checker.Colour.WHITE));
+        board.addHomeChecker(1, new Checker(Checker.Colour.WHITE));
+        board.addHomeChecker(1, new Checker(Checker.Colour.WHITE));*/
+
+
+
+
         System.out.println("Welcome to Backgammon");
         System.out.println();
     }
@@ -224,9 +250,9 @@ public class Game {
         int noOfPipsBlack = 0;
         for (int i = 0; i < 24; i++) {
                 if (Board.piles[i].getColour() == Checker.Colour.WHITE) {
-                    noOfPipsWhite += Board.piles[i].getNoOfCheckers() * (i + 1);
+                    noOfPipsWhite += Board.piles[i].getNoOfCheckers() * (i + 1) + Board.bar[1].getNoOfCheckers() * (24);
                 } else {
-                    noOfPipsBlack += Board.piles[i].getNoOfCheckers() * (24 - i);
+                    noOfPipsBlack += Board.piles[i].getNoOfCheckers() * (24 - i) + Board.bar[0].getNoOfCheckers() * (24);
                 }
             }
         outputMessage("⚪ Pip count : " + noOfPipsWhite + "  ⚫ Pip count : " + noOfPipsBlack);
