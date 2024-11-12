@@ -5,18 +5,30 @@ public class Checker {
     }
 
     private Colour colour;
+    private int position;
 
-    public Checker(Colour colour) {
+    // Constructor
+    public Checker(int position, Colour colour) {
+        this.position = position;
         this.colour = colour;
     }
 
+    public void setPosition(int position){
+        this.position = position;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    // Getter for checker Colour
     public Colour getColour() {
         return colour;
     }
 
     public String toString() {
-
         return colour == Colour.WHITE ? "⚪" : "⚫";
+        //return colour == Colour.WHITE ? "X" : "O";
 }
 
 }

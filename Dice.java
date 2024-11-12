@@ -3,6 +3,7 @@ import java.util.*;
 public class Dice {
    private static final Random random = new Random();
 
+   // Constructor
     public Dice() {
     }
 

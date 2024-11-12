@@ -1,7 +1,16 @@
+import java.util.*;
+
 public class Board {
+    public static final int TOTAL_CHECKERS = 15;
     public static Pile[] piles = new Pile[24];
     public static Pile[] home = new Pile[2];
     public static Pile[] bar = new Pile[2];
+
+    private int PLAYER1BARINDEX = 0;
+    private int PLAYER2BARINDEX = 1;
+
+    private int PLAYER1HOMEINDEX = 0; // White Checkers (0)
+    private int PLAYER2HOMEINDEX = 1; // Black Checkers (1)
 
     public Board() {
         for (int i = 0; i < 24; i++) {
@@ -13,25 +22,69 @@ public class Board {
         }
     }
 
+    public static List<Checker> getCheckers(Checker.Colour colour) {
+        List<Checker> checkers = new ArrayList<>();
+
+        // Iterate through all piles on the board and get checkers of the specified color
+        for (Pile pile : piles) {
+            for (Checker checker : pile.getCheckers()) {
+                if (checker.getColour() == colour) {
+                    checkers.add(checker);
+                }
+            }
+        }
+        return checkers;
+    }
+
     public void addChecker(int pile, Checker checker) {
         piles[pile].addChecker(checker);
     }
 
-    public void removeChecker(int pile, Checker checker) {
-        piles[pile].removeChecker(checker);
+    public void removeChecker(int pile) {
+        piles[pile].removeTopChecker();
     }
 
-    public void addBarChecker(int pile, Checker checker) {
-        bar[pile].addChecker(checker);
+    public void addBarChecker(int index, Checker checker) {
+        bar[index].addChecker(checker);
     }
 
-    public void removeBarChecker(int pile, Checker checker) {
-        bar[pile].removeChecker(checker);
+    public void removeBarChecker(int pile) {
+        bar[pile].removeTopChecker();
     }
 
     public void addHomeChecker(int pile, Checker checker) {
         home[pile].addChecker(checker);
     }
+
+    public boolean checkWinCondition(Player currentPlayer){
+        int playerHomeIndex = (currentPlayer.getChecker() == Checker.Colour.WHITE) ? PLAYER1HOMEINDEX : PLAYER2HOMEINDEX;
+        return home[playerHomeIndex].getNoOfCheckers() == TOTAL_CHECKERS;
+    }
+
+    public boolean isLegalMove(int targetPosition, Checker.Colour colour) {
+        boolean isLegal = false;
+
+        // If pile is empty then the move is legal
+        if (piles[targetPosition].getCheckers().isEmpty()) {
+            isLegal = true;
+        }
+        else {
+            // If the checkers in the pile are the same colour as the checker to move then it is legal
+            if(piles[targetPosition].getCheckers().getLast().getColour() == colour){
+                isLegal = true;
+            }
+            else // Checkers aren't the same colour
+            {
+                // If there is only one checker then the move is legal
+                if(piles[targetPosition].getNoOfCheckers() < 2)
+                {
+                    isLegal = true;
+                }
+            }
+        }
+        return isLegal;
+    }
+
 
     private static int[] getMaxHeight() {
         int pilesMaxHeight = 0;
@@ -65,11 +118,15 @@ public class Board {
         String player1TopPips = "13 14 15 16 17 18 | B | 19 20 21 22 23 24";
         String player1BottomPips = "12 11 10  9  8  7 | B |  6  5  4  3  2  1";
 
+        /*
         if (currentPlayer) {
             System.out.println(player1TopPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
-        } else {
-            System.out.println(player1BottomPips+ "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
         }
+        else {
+            System.out.println(player1BottomPips+ "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
+        }*/
+
+        System.out.println(player1TopPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
 
         if (Math.max(Math.max(barMaxHeight, pileMaxHeight), homeMaxHeight) == homeMaxHeight) {
             actualMaxHeight = Math.min(homeMaxHeight, 6);
@@ -99,8 +156,8 @@ public class Board {
             }
             if (row == 5) {
                 System.out.print("  [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
-            } else if (row < home[0].getNoOfCheckers()) {
-                System.out.print("  | " + home[0].get(row).toString() + "| ");
+            } else if (row < home[1].getNoOfCheckers()) {
+                System.out.print("  | " + home[1].get(row).toString() + "| ");
             } else if (row > 5) {
                 System.out.print(" ");
             } else {
@@ -135,8 +192,8 @@ public class Board {
 
             if (row == 5) {
                 System.out.print("  [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
-            } else if (row < home[1].getNoOfCheckers()) {
-                System.out.print("  | " + home[1].get(row).toString() + "| ");
+            } else if (row < home[0].getNoOfCheckers()) {
+                System.out.print("  | " + home[0].get(row).toString() + "| ");
             } else if (row > 5) {
                 System.out.print(" ");
             }  else {
@@ -144,10 +201,14 @@ public class Board {
             }
             System.out.println();
         }
+        /*
         if (currentPlayer) {
             System.out.println(player1BottomPips + "    [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
-        } else {
-            System.out.println(player1TopPips + "    [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
         }
+        else {
+            System.out.println(player1TopPips + "    [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
+        }*/
+
+        System.out.println(player1BottomPips + "    [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
     }
 }
