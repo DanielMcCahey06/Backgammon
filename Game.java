@@ -1,7 +1,4 @@
-import java.sql.SQLOutput;
 import java.util.*;
-
-import static java.awt.Color.WHITE;
 
 public class Game {
     protected Player player1; // White Checkers
@@ -119,27 +116,29 @@ public class Game {
             if(action.equals("HINT")) {
                 gameHelp();
                 System.out.println("Enter your choice " + currentPlayer.getName() + ": ");
-                action = scanner.nextLine();
+                action = scanner.nextLine().toUpperCase();
             }
             if(action.equals("D")){
                 if((isPlayer1Turn && (DoubleDice.getOwner() == 2))||(!isPlayer1Turn && (DoubleDice.getOwner() == 1))){
                     outputMessage(currentPlayer.getName() + "you are not currently in possession of the Double Dice so you cannot propose a double");
                 }
                 else{
-                outputMessage(currentPlayer.getName() + "has proposed a double." + otherPlayer.getName() + ", to accept and double the stakes of this game input 'A'. To Decline and forfeit this game input 'D'");
-                string reaction = scanner.nextLine();
+                outputMessage(currentPlayer.getName() + " has proposed a double. " + otherPlayer.getName() + ", to accept and double the stakes of this game input 'A'. To Decline and forfeit this game input 'D'");
+                String reaction = scanner.nextLine();
                 reaction = reaction.toUpperCase();
                 if(reaction.equals("A")){
                     DoubleDice.increaseDouble(); //multiplier is doubled
-                    stake = DoubleDice.getDouble() //stake equals new double amount
+                    stake = DoubleDice.getDouble(); //stake equals new double amount
                     DoubleDice.setOwner(otherPlayerNumber); //set owner of double dice to opposition player
-                    outputMessage("The stakes have been doubled. This game is now worth"+DoubleDice.getDouble() + " points." + otherPlayer.getname() + " is now the holder of the doubling dice.");
+                    outputMessage("The stakes have been doubled. This game is now worth "+DoubleDice.getDouble() + " points. " + otherPlayer.getName() + " is now the holder of the doubling dice.");
+                    System.out.println("Enter your move " + currentPlayer.getName() + ": ");
+                    action = scanner.nextLine().toUpperCase();
                 }
                 if(reaction.equals("D")){
                     outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
                     currentPlayer.increaseScore(stake);
                     gameInPlay = false;
-                    return false;
+                    //return false;
                 }
             }
             action = scanner.nextLine();

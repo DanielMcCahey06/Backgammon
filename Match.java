@@ -1,17 +1,17 @@
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
+import java.util.*;
 public class Match {
     private int pointsToWin; //the amount of points needed to win
 
 
-    public void playMatch() {
+    public static void playMatch() {
         System.out.println("Welcome to Backgammon");
         System.out.println();
         //Find out how much points to win the match
         System.out.println("How much points would you like to play to?");
         Scanner scanner = new Scanner(System.in); // allows reading from the console
         int pointsToWin = scanner.nextInt();
+        scanner.nextLine(); //clear the new line left in the buffer
 
         //Get player names
         System.out.println("Enter name 1 (White Checker):");
@@ -27,11 +27,11 @@ public class Match {
             game.start(player1, player2);
 
         }
-        if (player1.getScore() = pointsToWin){
-            outputmessage(player1.getName() + " has won the match, congratulations! ")
+        if (player1.getScore() == pointsToWin || player1.getScore() > pointsToWin){
+            Game.outputMessage(player1.getName() + " has won the match, congratulations! ");
         }
-        if (player2.getScore() = pointsToWin){
-            outputmessage(player2.getName() + " has won the match, congratulations! ")
+        if (player2.getScore() == pointsToWin || player2.getScore() > pointsToWin){
+            Game.outputMessage(player2.getName() + " has won the match, congratulations! ");
         }
 
 
