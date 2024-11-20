@@ -1,7 +1,7 @@
 import java.util.Scanner;
 import java.util.*;
 public class Match {
-    private int pointsToWin; //the amount of points needed to win
+    public static int pointsToWin; //the amount of points needed to win
 
 
     public static void playMatch() {
@@ -10,7 +10,7 @@ public class Match {
         //Find out how much points to win the match
         System.out.println("How much points would you like to play to?");
         Scanner scanner = new Scanner(System.in); // allows reading from the console
-        int pointsToWin = scanner.nextInt();
+        pointsToWin = scanner.nextInt();
         scanner.nextLine(); //clear the new line left in the buffer
 
         //Get player names

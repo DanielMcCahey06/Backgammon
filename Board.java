@@ -118,15 +118,11 @@ public class Board {
         String player1TopPips = "13 14 15 16 17 18 | B | 19 20 21 22 23 24";
         String player1BottomPips = "12 11 10  9  8  7 | B |  6  5  4  3  2  1";
 
-        /*
-        if (currentPlayer) {
+        if (DoubleDice.getOwner() == 2) {
+            System.out.println(player1TopPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]   Double Dice Value x" + DoubleDice.getDouble());
+        } else {
             System.out.println(player1TopPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
         }
-        else {
-            System.out.println(player1BottomPips+ "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
-        }*/
-
-        System.out.println(player1TopPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
 
         if (Math.max(Math.max(barMaxHeight, pileMaxHeight), homeMaxHeight) == homeMaxHeight) {
             actualMaxHeight = Math.min(homeMaxHeight, 6);
@@ -166,7 +162,11 @@ public class Board {
             System.out.println();
         }
 
-        System.out.println("================= | B | ==================");
+        if (DoubleDice.getOwner() == 0) {
+            System.out.println("================= | B | ==================             Double Dice Value x" + DoubleDice.getDouble());
+        } else {
+            System.out.println("================= | B | ==================");
+        }
 
         for (int row = Math.max(actualMaxHeight, 6) - 1; row >= 0; row--) {
             for (int i = 11; i > 5; i--) {
@@ -201,14 +201,11 @@ public class Board {
             }
             System.out.println();
         }
-        /*
-        if (currentPlayer) {
-            System.out.println(player1BottomPips + "    [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
-        }
-        else {
-            System.out.println(player1TopPips + "    [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
-        }*/
 
-        System.out.println(player1BottomPips + "    [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
+        if (DoubleDice.getOwner() == 1) {
+            System.out.println(player1BottomPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]   Double Dice Value x" + DoubleDice.getDouble());
+        } else {
+            System.out.println(player1BottomPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
+        }
     }
 }
