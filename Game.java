@@ -20,13 +20,15 @@ public class Game {
     private static final int width = 50;
     public static final String border = "-".repeat(width);
     private static int noOfMoves = 0;
-
+    private int stake = 1; //how much points the game is worth. can be doubled
+    private DoubleDice DoubleDice;
     public Game() {
         initialiseGame(); // Set up game board with checkers in their starting positions
     }
 
     private void initialiseGame() {
         dice = new Dice();
+        DoubleDice = new DoubleDice(); //intialise Double Dice
 
         // add initial checkers
         board.addChecker(23, new Checker(23, Checker.Colour.WHITE));
@@ -64,15 +66,15 @@ public class Game {
         System.out.println();
     }
 
-    public void start() {
+    public void start(Player player1, Player player2) {
         Scanner scanner = new Scanner(System.in); // allows reading from the console
-        System.out.println("Enter Player 1 name (White Checker):");
+        /*System.out.println("Enter Player 1 name (White Checker):");
         String player1Name = scanner.nextLine();
         player1 = new Player(player1Name, Checker.Colour.WHITE);
 
         System.out.println("Enter Player 2 name (Black Checker):");
         String player2Name = scanner.nextLine();
-        player2 = new Player(player2Name, Checker.Colour.BLACK);
+        player2 = new Player(player2Name, Checker.Colour.BLACK);*/
 
         System.out.println("Now to determine who goes first!");
 
@@ -103,16 +105,44 @@ public class Game {
          */
         while (gameInPlay) {
             Player currentPlayer = isPlayer1Turn ? player1 : player2;
+            Player otherPlayer = isPlayer1Turn ? player2 : player1;
+            int currentPlayerNumber = isPlayer1Turn ? 1:2;
+            int otherPlayerNumber = isPlayer1Turn ? 2:1;
+
             Board.display(isPlayer1Turn);
             outputMessage(currentPlayer.getName() + "'s turn ('" + currentPlayer.getDisplay() + "' Checkers)");
             displayPipNumbers(currentPlayer, isPlayer1Turn);
             outputMessage("Enter 'hint' for a list of possible commands");
             String action = scanner.nextLine();// stores user input into 'action'
+            action = action.toUpperCase();
 
-            if(action.equals("hint")) {
+            if(action.equals("HINT")) {
                 gameHelp();
                 System.out.println("Enter your choice " + currentPlayer.getName() + ": ");
                 action = scanner.nextLine();
+            }
+            if(action.equals("D")){
+                if((isPlayer1Turn && (DoubleDice.getOwner() == 2))||(!isPlayer1Turn && (DoubleDice.getOwner() == 1))){
+                    outputMessage(currentPlayer.getName() + "you are not currently in possession of the Double Dice so you cannot propose a double");
+                }
+                else{
+                outputMessage(currentPlayer.getName() + "has proposed a double." + otherPlayer.getName() + ", to accept and double the stakes of this game input 'A'. To Decline and forfeit this game input 'D'");
+                string reaction = scanner.nextLine();
+                reaction = reaction.toUpperCase();
+                if(reaction.equals("A")){
+                    DoubleDice.increaseDouble(); //multiplier is doubled
+                    stake = DoubleDice.getDouble() //stake equals new double amount
+                    DoubleDice.setOwner(otherPlayerNumber); //set owner of double dice to opposition player
+                    outputMessage("The stakes have been doubled. This game is now worth"+DoubleDice.getDouble() + " points." + otherPlayer.getname() + " is now the holder of the doubling dice.");
+                }
+                if(reaction.equals("D")){
+                    outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
+                    currentPlayer.increaseScore(stake);
+                    gameInPlay = false;
+                    return false;
+                }
+            }
+            action = scanner.nextLine();
             }
 
             if (processAction(action, currentPlayer)) {
@@ -126,7 +156,6 @@ public class Game {
     Function to process the players command
      */
     private boolean processAction(String action, Player currentPlayer) {
-        action = action.toUpperCase();
         switch (action) {
             /*case "HINT" -> {
                 gameHelp();
@@ -137,6 +166,7 @@ public class Game {
                 errorMessage("Game over!");
                 return false;
             }
+
             case "ROLL" -> {
                 int[] roll = Dice.roll();
                 outputMessage("Dice roll:" + Dice.diceFace(roll[0]) + " " + Dice.diceFace(roll[1]));
@@ -234,6 +264,7 @@ public class Game {
                     Board.display(isPlayer1Turn);
                     if (isGameWon(currentPlayer)) {
                         outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
+                        currentPlayer.increaseScore(stake);
                         gameInPlay = false;
                         return false;
                     }
@@ -599,7 +630,7 @@ public class Game {
     }
 
     private void gameHelp() {
-        outputMessage("Enter 'roll' to roll the dice, 'Q' to quit the game, 'pip' to view pip count!");
+        outputMessage("Enter 'roll' to roll the dice, 'Q' to quit the game, 'pip' to view pip count, 'd'to propose a double!");
         System.out.println();
     }
 
