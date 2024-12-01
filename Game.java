@@ -7,7 +7,8 @@ public class Game {
     private int WHITEHOMEPOSITION = -1;
     private int BLACKHOMEPOSITION = 24;
     protected Board board = new Board();
-    private Dice dice;
+    private static Dice dice;
+    private static boolean isDiceSet = false;
     private boolean equalDice = true; // check if dice rolls are equal at the start to decide the first player
     private boolean gameInPlay = true;
     private boolean isPlayer1Turn = true; // keep track of whose turn it is
@@ -65,14 +66,6 @@ public class Game {
 
     public void start(Player player1, Player player2) {
         Scanner scanner = new Scanner(System.in); // allows reading from the console
-        /*System.out.println("Enter Player 1 name (White Checker):");
-        String player1Name = scanner.nextLine();
-        player1 = new Player(player1Name, Checker.Colour.WHITE);
-
-        System.out.println("Enter Player 2 name (Black Checker):");
-        String player2Name = scanner.nextLine();
-        player2 = new Player(player2Name, Checker.Colour.BLACK);*/
-
         System.out.println("Now to determine who goes first!");
 
         /*
@@ -80,7 +73,7 @@ public class Game {
         is a winner for who starts first.
          */
         while (equalDice) {
-            int[] startingRoll = Dice.roll();
+            int[] startingRoll = dice.roll();
             int player1Roll = startingRoll[0];
             int player2Roll = startingRoll[1];
             outputMessage(player1.getName() + " rolls a " + Dice.diceFace(player1Roll) + " and " + player2.getName() + " rolls a " + Dice.diceFace(player2Roll));
@@ -126,30 +119,30 @@ public class Game {
                     action = scanner.nextLine().toUpperCase();
                 }
                 else{
-                outputMessage(currentPlayer.getName() + " has proposed a double. " + otherPlayer.getName() + ", to accept and double the stakes of this game input 'A'. To Decline and forfeit this game input 'D'");
-                String reaction = scanner.nextLine();
-                reaction = reaction.toUpperCase();
-                while (!reaction.equals("A") && !reaction.equals("D")) {
-                    errorMessage("Invalid input. Input must be A or D");
-                    reaction = scanner.nextLine().toUpperCase();
-                }
-                if(reaction.equals("A")){
-                    DoubleDice.increaseDouble(); //multiplier is doubled
-                    stake = DoubleDice.getDouble(); //stake equals new double amount
-                    DoubleDice.setOwner(otherPlayerNumber); //set owner of double dice to opposition player
-                    outputMessage("The stakes have been doubled. This game is now worth "+DoubleDice.getDouble() + " points. " + otherPlayer.getName() + " is now the holder of the doubling dice.");
-                    outputMessage("Enter your move " + currentPlayer.getName() + ": ");
-                    action = scanner.nextLine().toUpperCase();
-                } else if(reaction.equals("D")) {
-                    outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
-                    currentPlayer.increaseScore(stake);
-                    gameInPlay = false;
-                    break;
-                }
+                    outputMessage(currentPlayer.getName() + " has proposed a double. " + otherPlayer.getName() + ", to accept and double the stakes of this game input 'A'. To Decline and forfeit this game input 'D'");
+                    String reaction = scanner.nextLine();
+                    reaction = reaction.toUpperCase();
+                    while (!reaction.equals("A") && !reaction.equals("D")) {
+                        errorMessage("Invalid input. Input must be A or D");
+                        reaction = scanner.nextLine().toUpperCase();
+                    }
+                    if(reaction.equals("A")){
+                        DoubleDice.increaseDouble(); //multiplier is doubled
+                        stake = DoubleDice.getDouble(); //stake equals new double amount
+                        DoubleDice.setOwner(otherPlayerNumber); //set owner of double dice to opposition player
+                        outputMessage("The stakes have been doubled. This game is now worth "+DoubleDice.getDouble() + " points. " + otherPlayer.getName() + " is now the holder of the doubling dice.");
+                        outputMessage("Enter your move " + currentPlayer.getName() + ": ");
+                        action = scanner.nextLine().toUpperCase();
+                    } else if(reaction.equals("D")) {
+                        outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
+                        currentPlayer.increaseScore(stake);
+                        gameInPlay = false;
+                        break;
+                    }
                 }
             }
 
-            if (processAction(action, currentPlayer)) {
+            if (processAction(action, currentPlayer, otherPlayer)) {
                 isPlayer1Turn = !isPlayer1Turn;
             }
         }
@@ -158,7 +151,7 @@ public class Game {
     /*
     Function to process the players command
      */
-    private boolean processAction(String action, Player currentPlayer) {
+    private boolean processAction(String action, Player currentPlayer, Player otherPlayer) {
         switch (action) {
             case "Q" -> {
                 gameInPlay = false;
@@ -167,7 +160,15 @@ public class Game {
             }
 
             case "ROLL" -> {
-                int[] roll = Dice.roll();
+                int[] roll = new int[2];
+                if(!isDiceSet) {
+                    roll = dice.roll();
+                }
+                else {
+                    roll = dice.getSetDice();
+                    isDiceSet = false;
+                }
+
                 outputMessage("Dice roll:" + Dice.diceFace(roll[0]) + " " + Dice.diceFace(roll[1]));
 
                 switchPlayer = false;
@@ -262,8 +263,9 @@ public class Game {
                     }
                     Board.display(isPlayer1Turn);
                     if (isGameWon(currentPlayer)) {
+                        int winConditionMultiplier = getWinCondition(currentPlayer, otherPlayer);
                         outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
-                        currentPlayer.increaseScore(stake);
+                        currentPlayer.increaseScore(stake*winConditionMultiplier);
                         gameInPlay = false;
                         return false;
                     }
@@ -282,31 +284,29 @@ public class Game {
             }
             case "DICE" -> {
                 Scanner scanner = new Scanner(System.in);
-                int[] bothValues = new int[2];
-                System.out.println("Enter the two dice values: ");
+                int[] diceValues = new int[2];
+                System.out.println("Enter the two dice values in the form: <int> <int>, ensuring they are seperated by a space.");
                 String values = scanner.nextLine();
                 String[] parts = values.split(" ");
 
                 if (parts.length != 2) {
                     errorMessage("Enter exactly two values");
-                    return false;
-                } else {
-                    try {
-                        bothValues[0] = Integer.parseInt(parts[0]);
-                        bothValues[1] = Integer.parseInt(parts[1]);
-                        if ( bothValues[0] < 1 || bothValues[1] < 1 || bothValues[0] > 6 || bothValues[1] > 6) {
-                            errorMessage("Error : Each dice value must be between 1 and 6");
-                            return false;
-                        }
-
-                        int[] roll = Dice.roll(bothValues[0], bothValues[1]);
-                        outputMessage("Dice roll:" + Dice.diceFace(roll[0]) + " " + Dice.diceFace(roll[1]));
-                        return true;
-                    } catch (NumberFormatException e) {
+                }
+                else {
+                    if (isValidDicePair(parts)) {
+                        diceValues[0] = Integer.parseInt(parts[0]);
+                        diceValues[1] = Integer.parseInt(parts[1]);
+                        dice.setDice(diceValues[0], diceValues[1]);
+                        isDiceSet = true;
+                        System.out.println("Dice values now set for the next dice roll");
+                        System.out.println();
+                    } else {
                         errorMessage("Invalid input. Enter two integer values!");
-                        return false;
                     }
                 }
+
+                return false;
+
             }
             default -> {
                 errorMessage("Invalid command");
@@ -518,8 +518,45 @@ public class Game {
         return true;
     }
 
+    public int getWinCondition(Player winningPlayer, Player otherPlayer){
+        int winningPlayerHomeIndex = (winningPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1HOMEINDEX : Board.PLAYER2HOMEINDEX;
+        int losingPlayerHomeIndex = (otherPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1HOMEINDEX : Board.PLAYER2HOMEINDEX;
+        int losingPlayerBarIndex = (otherPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1BARINDEX : Board.PLAYER2BARINDEX;
+
+        boolean hasLosingPlayerBorneOffAny = Board.home[losingPlayerHomeIndex].getNoOfCheckers() > 0;
+        boolean hasLosingPlayerCheckersOnBar = Board.bar[losingPlayerBarIndex].getNoOfCheckers() > 0;
+
+        // Check if losing player has any checkers in opponents home board
+        boolean hasLosingPlayerInOppHome = false;
+        int opponentStart = (winningPlayer.getChecker() == Checker.Colour.WHITE) ? 0 : 18; // Start of opponent home board
+        int opponentEnd = (winningPlayer.getChecker() == Checker.Colour.WHITE) ? 5 : 23;  // End of opponent home board
+
+        for (int i = opponentStart; i <= opponentEnd; i++) {
+            if (!Board.piles[i].getCheckers().isEmpty() &&
+                    Board.piles[i].getCheckers().get(0).getColour() == otherPlayer.getChecker()) {
+                hasLosingPlayerInOppHome = true;
+                break;
+            }
+        }
+
+        // Determine win condition
+        if (hasLosingPlayerBorneOffAny) {
+            System.out.println("Congratulations on your single win!");
+            return 1; // Single Win
+        } else if (!hasLosingPlayerCheckersOnBar && !hasLosingPlayerInOppHome) {
+            System.out.println("Congratulations on your Gammon win! Your score is now doubled.");
+            return 2; // Gammon
+        } else {
+            System.out.println("Congratulations on your Backgammon win! Your score is now tripled.");
+            return 3; // Backgammon
+        }
+    }
+
     /*
     ISSUE: usedDice is coming into this function already marked.
+     */
+    /*
+    FIXED
      */
     private void markUsedDice(int[] roll, int moveDistance, boolean[] usedDice){
 
@@ -566,6 +603,27 @@ public class Game {
                 System.out.println("Cone " + (i + 1) + " -> " + pipScore);
             }
         }
+    }
+
+    public boolean isValidDicePair(String [] parts){
+        boolean isValid = true;
+
+        try {
+            // Parse both parts as integers
+            int[] diceValues = new int[2];
+            diceValues[0] = Integer.parseInt(parts[0]);
+            diceValues[1] = Integer.parseInt(parts[1]);
+
+            // Check if both values are between 1 and 6
+            if (diceValues[0] < 1 || diceValues[0] > 6 || diceValues[1] < 1 || diceValues[1] > 6) {
+                isValid = false;
+            }
+
+        } catch (NumberFormatException e) {
+            // If parsing fails, the input is not valid
+            isValid = false;
+        }
+        return isValid;
     }
 
     /*

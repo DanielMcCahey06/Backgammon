@@ -6,11 +6,11 @@ public class Board {
     public static Pile[] home = new Pile[2];
     public static Pile[] bar = new Pile[2];
 
-    private int PLAYER1BARINDEX = 0;
-    private int PLAYER2BARINDEX = 1;
+    public static int PLAYER1BARINDEX = 1; // White Checkers
+    public static int PLAYER2BARINDEX = 0; // Black Checkers
 
-    private int PLAYER1HOMEINDEX = 0; // White Checkers (0)
-    private int PLAYER2HOMEINDEX = 1; // Black Checkers (1)
+    public static int PLAYER1HOMEINDEX = 0; // White Checkers (0)
+    public static int PLAYER2HOMEINDEX = 1; // Black Checkers (1)
 
     public Board() {
         for (int i = 0; i < 24; i++) {
