@@ -1,10 +1,11 @@
 import java.util.*;
 
-public class Board {
+public class Board implements Subject{
     public static final int TOTAL_CHECKERS = 15;
-    public static Pile[] piles = new Pile[24];
-    public static Pile[] home = new Pile[2];
-    public static Pile[] bar = new Pile[2];
+    private Pile[] piles = new Pile[24];
+    private Pile[] home = new Pile[2];
+    private Pile[] bar = new Pile[2];
+    private final List<Observer> observers = new ArrayList<>();
 
     public static int PLAYER1BARINDEX = 1; // White Checkers
     public static int PLAYER2BARINDEX = 0; // Black Checkers
@@ -20,40 +21,45 @@ public class Board {
             home[i] = new Pile();
             bar[i] = new Pile();
         }
+
+        initialiseCheckers();
     }
 
-    public static List<Checker> getCheckers(Checker.Colour colour) {
-        List<Checker> checkers = new ArrayList<>();
+    @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
 
-        // Iterate through all piles on the board and get checkers of the specified color
-        for (Pile pile : piles) {
-            for (Checker checker : pile.getCheckers()) {
-                if (checker.getColour() == colour) {
-                    checkers.add(checker);
-                }
-            }
+    @Override
+    public void notifyObservers() {
+        for (Observer observer : observers) {
+            observer.update(this);
         }
-        return checkers;
     }
 
-    public void addChecker(int pile, Checker checker) {
-        piles[pile].addChecker(checker);
+    public Pile[] getPiles(){
+        return piles;
     }
 
-    public void removeChecker(int pile) {
-        piles[pile].removeTopChecker();
+    public Pile getPile(int index) {
+        if (index < 0 || index >= piles.length) {
+            throw new IllegalArgumentException("Invalid pile index");
+        }
+        return piles[index];
     }
 
-    public void addBarChecker(int index, Checker checker) {
-        bar[index].addChecker(checker);
+    public Pile getHomePile(int index) {
+        if (index < 0 || index >= home.length) {
+            throw new IllegalArgumentException("Invalid home pile index");
+        }
+        return home[index];
     }
 
-    public void removeBarChecker(int pile) {
-        bar[pile].removeTopChecker();
-    }
-
-    public void addHomeChecker(int pile, Checker checker) {
-        home[pile].addChecker(checker);
+    public Pile getBarPile(int index) {
+        if (index < 0 || index >= bar.length) {
+            throw new IllegalArgumentException("Invalid bar pile index");
+        }
+        return bar[index];
     }
 
     public boolean checkWinCondition(Player currentPlayer){
@@ -86,7 +92,7 @@ public class Board {
     }
 
 
-    private static int[] getMaxHeight() {
+    public int[] getMaxHeight() {
         int pilesMaxHeight = 0;
         int barMaxHeight = 0;
         int homeMaxHeight = 0;
@@ -108,104 +114,36 @@ public class Board {
         return new int[]{pilesMaxHeight, barMaxHeight, homeMaxHeight};
     }
 
-    public static void display(boolean currentPlayer) {
-
-        int[] maxHeight = getMaxHeight();
-        int pileMaxHeight = maxHeight[0];
-        int barMaxHeight = maxHeight[1];
-        int homeMaxHeight = maxHeight[2];
-        int actualMaxHeight;
-        String player1TopPips = "13 14 15 16 17 18 | B | 19 20 21 22 23 24";
-        String player1BottomPips = "12 11 10  9  8  7 | B |  6  5  4  3  2  1";
-
-        if (DoubleDice.getOwner() == 2) {
-            System.out.println(player1TopPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]   Double Dice Value x" + DoubleDice.getDouble());
-        } else {
-            System.out.println(player1TopPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
-        }
-
-        if (Math.max(Math.max(barMaxHeight, pileMaxHeight), homeMaxHeight) == homeMaxHeight) {
-            actualMaxHeight = Math.min(homeMaxHeight, 6);
-        } else {
-            actualMaxHeight = Math.max(pileMaxHeight, barMaxHeight);
-        }
-        for (int row = 0; row < Math.max(actualMaxHeight, 6); row++) {
-            for (int i = 12; i < 18; i++) {
-                if (row < piles[i].getNoOfCheckers()) {
-                    System.out.print(piles[i].get(row).toString() + " ");
-                } else {
-                    System.out.print("   ");
-                }
-            }
-            if (row < bar[0].getNoOfCheckers()) {
-                System.out.print("| " + bar[0].get(row).toString() + "| ");
-            } else {
-                System.out.print("|   | ");
-            }
-
-            for (int i = 18; i < 24; i++) {
-                if (row < piles[i].getNoOfCheckers()) {
-                    System.out.print(piles[i].get(row).toString() + " ");
-                } else {
-                    System.out.print("   ");
-                }
-            }
-            if (row == 5) {
-                System.out.print("  [⎼⎼⎼⎼⎼⎼⎼⎼⎼]");
-            } else if (row < home[1].getNoOfCheckers()) {
-                System.out.print("  | " + home[1].get(row).toString() + "| ");
-            } else if (row > 5) {
-                System.out.print(" ");
-            } else {
-                System.out.print("  |   |");
-            }
-            System.out.println();
-        }
-
-        if (DoubleDice.getOwner() == 0) {
-            System.out.println("================= | B | ==================             Double Dice Value x" + DoubleDice.getDouble());
-        } else {
-            System.out.println("================= | B | ==================");
-        }
-
-        for (int row = Math.max(actualMaxHeight, 6) - 1; row >= 0; row--) {
-            for (int i = 11; i > 5; i--) {
-                if (row < piles[i].getNoOfCheckers()) {
-                    System.out.print(piles[i].get(row).toString() + " ");
-                } else {
-                    System.out.print("   ");
-                }
-            }
-            if (row < bar[1].getNoOfCheckers()) {
-                System.out.print("| " + bar[1].get(row).toString() + "| ");
-            } else {
-                System.out.print("|   | ");
-            }
-
-            for (int i = 5; i >= 0; i--) {
-                if (row < piles[i].getNoOfCheckers()) {
-                    System.out.print(piles[i].get(row).toString() + " ");
-                } else {
-                    System.out.print("   ");
-                }
-            }
-
-            if (row == 5) {
-                System.out.print("  [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
-            } else if (row < home[0].getNoOfCheckers()) {
-                System.out.print("  | " + home[0].get(row).toString() + "| ");
-            } else if (row > 5) {
-                System.out.print(" ");
-            }  else {
-                System.out.print("  |   |");
-            }
-            System.out.println();
-        }
-
-        if (DoubleDice.getOwner() == 1) {
-            System.out.println(player1BottomPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]   Double Dice Value x" + DoubleDice.getDouble());
-        } else {
-            System.out.println(player1BottomPips + "    [⎺⎺⎺⎺⎺⎺⎺⎺⎺]");
-        }
+    private void initialiseCheckers() {
+        piles[23].addChecker(new Checker(23, Checker.Colour.WHITE));
+        piles[23].addChecker(new Checker(23, Checker.Colour.WHITE));
+        piles[18].addChecker(new Checker(18, Checker.Colour.BLACK));
+        piles[18].addChecker(new Checker(18, Checker.Colour.BLACK));
+        piles[18].addChecker(new Checker(18, Checker.Colour.BLACK));
+        piles[18].addChecker(new Checker(18, Checker.Colour.BLACK));
+        piles[18].addChecker(new Checker(18, Checker.Colour.BLACK));
+        piles[16].addChecker(new Checker(16, Checker.Colour.BLACK));
+        piles[16].addChecker(new Checker(16, Checker.Colour.BLACK));
+        piles[16].addChecker(new Checker(16, Checker.Colour.BLACK));
+        piles[12].addChecker(new Checker(12, Checker.Colour.WHITE));
+        piles[12].addChecker(new Checker(12, Checker.Colour.WHITE));
+        piles[12].addChecker(new Checker(12, Checker.Colour.WHITE));
+        piles[12].addChecker(new Checker(12, Checker.Colour.WHITE));
+        piles[12].addChecker(new Checker(12, Checker.Colour.WHITE));
+        piles[11].addChecker(new Checker(11, Checker.Colour.BLACK));
+        piles[11].addChecker(new Checker(11, Checker.Colour.BLACK));
+        piles[11].addChecker(new Checker(11, Checker.Colour.BLACK));
+        piles[11].addChecker(new Checker(11, Checker.Colour.BLACK));
+        piles[11].addChecker(new Checker(11, Checker.Colour.BLACK));
+        piles[7].addChecker(new Checker(7, Checker.Colour.WHITE));
+        piles[7].addChecker(new Checker(7, Checker.Colour.WHITE));
+        piles[7].addChecker(new Checker(7, Checker.Colour.WHITE));
+        piles[5].addChecker(new Checker(5, Checker.Colour.WHITE));
+        piles[5].addChecker(new Checker(5, Checker.Colour.WHITE));
+        piles[5].addChecker(new Checker(5, Checker.Colour.WHITE));
+        piles[5].addChecker(new Checker(5, Checker.Colour.WHITE));
+        piles[5].addChecker(new Checker(5, Checker.Colour.WHITE));
+        piles[0].addChecker(new Checker(0, Checker.Colour.BLACK));
+        piles[0].addChecker(new Checker(0, Checker.Colour.BLACK));
     }
 }

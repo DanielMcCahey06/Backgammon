@@ -30,10 +30,4 @@ public class Pile {
     public Checker get(int index) {
         return checkers.get(index);
     }
-
-    /*public boolean canAddChecker(Checker checker) {
-        if (checkers.isEmpty()) {
-            return true;
-        } else if (checkers.contains(getColour() == checker.getColour())) {}
-    }*/
 }

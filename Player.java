@@ -16,10 +16,6 @@ public class Player {
         return checker.equals(Checker.Colour.WHITE);
     }
 
-    public List<Checker> getCheckers() {
-        return Board.getCheckers(checker); // Fetch checkers for the current player
-    }
-
     public String getName() {
         return name;
     }

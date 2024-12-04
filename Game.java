@@ -1,93 +1,46 @@
 import java.util.*;
 
 public class Game {
-    protected Player player1; // White Checkers
-    protected Player player2; // Black Checkers
     private boolean switchPlayer;
-    private int WHITEHOMEPOSITION = -1;
-    private int BLACKHOMEPOSITION = 24;
-    protected Board board = new Board();
+    private static final int WHITEHOMEPOSITION = -1;
+    private static final int BLACKHOMEPOSITION = 24;
+    private static final int WHITEBARPOSITION = 25;
+    private Board board;
     private static Dice dice;
     private static boolean isDiceSet = false;
     private boolean equalDice = true; // check if dice rolls are equal at the start to decide the first player
     private boolean gameInPlay = true;
     private boolean isPlayer1Turn = true; // keep track of whose turn it is
+    private static final int width = 50;
+    private int stake = 1; //how much points the game is worth. can be doubled
+    private DoubleDice doubleDice;
+
+    public static final String border = "-".repeat(width);
+
+    // Colour Codes
     public static final String Green = "\u001B[32m";
     public static final String Red = "\u001B[31m";
     public static final String Reset = "\u001B[0m";
-    private static final int width = 50;
-    public static final String border = "-".repeat(width);
-    private static int noOfMoves = 0;
-    private int stake = 1; //how much points the game is worth. can be doubled
-    private DoubleDice DoubleDice;
+
     public Game() {
         initialiseGame(); // Set up game board with checkers in their starting positions
     }
 
     private void initialiseGame() {
+        board = new Board();
         dice = new Dice();
-        DoubleDice = new DoubleDice(); //intialise Double Dice
-
-        // add initial checkers
-        board.addChecker(23, new Checker(23, Checker.Colour.WHITE));
-        board.addChecker(23, new Checker(23, Checker.Colour.WHITE));
-        board.addChecker(18, new Checker(18, Checker.Colour.BLACK));
-        board.addChecker(18, new Checker(18, Checker.Colour.BLACK));
-        board.addChecker(18, new Checker(18, Checker.Colour.BLACK));
-        board.addChecker(18, new Checker(18, Checker.Colour.BLACK));
-        board.addChecker(18, new Checker(18, Checker.Colour.BLACK));
-        board.addChecker(16, new Checker(16, Checker.Colour.BLACK));
-        board.addChecker(16, new Checker(16, Checker.Colour.BLACK));
-        board.addChecker(16, new Checker(16, Checker.Colour.BLACK));
-        board.addChecker(12, new Checker(12, Checker.Colour.WHITE));
-        board.addChecker(12, new Checker(12, Checker.Colour.WHITE));
-        board.addChecker(12, new Checker(12, Checker.Colour.WHITE));
-        board.addChecker(12, new Checker(12, Checker.Colour.WHITE));
-        board.addChecker(12, new Checker(12, Checker.Colour.WHITE));
-        board.addChecker(11, new Checker(11,Checker.Colour.BLACK));
-        board.addChecker(11, new Checker(11,Checker.Colour.BLACK));
-        board.addChecker(11, new Checker(11,Checker.Colour.BLACK));
-        board.addChecker(11, new Checker(11,Checker.Colour.BLACK));
-        board.addChecker(11, new Checker(11,Checker.Colour.BLACK));
-        board.addChecker(7, new Checker(7,Checker.Colour.WHITE));
-        board.addChecker(7, new Checker(7, Checker.Colour.WHITE));
-        board.addChecker(7, new Checker(7, Checker.Colour.WHITE));
-        board.addChecker(5, new Checker(5, Checker.Colour.WHITE));
-        board.addChecker(5, new Checker(5, Checker.Colour.WHITE));
-        board.addChecker(5, new Checker(5, Checker.Colour.WHITE));
-        board.addChecker(5, new Checker(5, Checker.Colour.WHITE));
-        board.addChecker(5, new Checker(5, Checker.Colour.WHITE));
-        board.addChecker(0, new Checker(0, Checker.Colour.BLACK));
-        board.addChecker(0, new Checker(0, Checker.Colour.BLACK));
-
-        System.out.println("Welcome to Backgammon");
-        System.out.println();
+        BoardRenderer boardRenderer = new BoardRenderer(board); // Create BoardRenderer
+        board.addObserver(boardRenderer); // Register BoardRenderer as an observer
+        doubleDice = new DoubleDice(); //intialise Double Dice
+        outputMessage("Welcome To Backgammon!");
     }
 
     public void start(Player player1, Player player2) {
         Scanner scanner = new Scanner(System.in); // allows reading from the console
         System.out.println("Now to determine who goes first!");
 
-        /*
-        Method to initialise player names and rolls dice to determine who starts first. Keeps running until there
-        is a winner for who starts first.
-         */
-        while (equalDice) {
-            int[] startingRoll = dice.roll();
-            int player1Roll = startingRoll[0];
-            int player2Roll = startingRoll[1];
-            outputMessage(player1.getName() + " rolls a " + Dice.diceFace(player1Roll) + " and " + player2.getName() + " rolls a " + Dice.diceFace(player2Roll));
-            if (player1Roll > player2Roll) {
-                outputMessage(player1.getName() + " will go first!");
-                equalDice = false;
-            } else if (player2Roll > player1Roll) {
-                outputMessage(player2.getName() + " will go first!");
-                isPlayer1Turn = false;
-                equalDice = false;
-            } else {
-                outputMessage("Dice rolls are equal so will go again!");
-            }
-        }
+        // Call function which determines who goes first
+        firstToPlay(player1, player2);
 
         /*
         Main game loop. Checks which players turn it is. Displays the board for that player and takes in the users
@@ -96,54 +49,26 @@ public class Game {
         while (gameInPlay) {
             Player currentPlayer = isPlayer1Turn ? player1 : player2;
             Player otherPlayer = isPlayer1Turn ? player2 : player1;
-            int currentPlayerNumber = isPlayer1Turn ? 1:2;
-            int otherPlayerNumber = isPlayer1Turn ? 2:1;
+            int currentPlayerNumber = isPlayer1Turn ? 1 : 2;
+            int otherPlayerNumber = isPlayer1Turn ? 2 : 1;
 
-            Board.display(isPlayer1Turn);
+            // Display information for current player
+            board.notifyObservers();
+            outputMessage(player1.getName() + "'s score is " + player1.getScore() + "  " + player2.getName() + "'s score is " + player2.getScore() + "  Score to Win: " + Match.pointsToWin);
             outputMessage(currentPlayer.getName() + "'s turn ('" + currentPlayer.getDisplay() + "' Checkers)");
             displayPipNumbers(currentPlayer, isPlayer1Turn);
-            outputMessage(player1.getName() + "'s score is " + player1.getScore() + "  " + player2.getName() + "'s score is " + player2.getScore() + "  Score to Win: " + Match.pointsToWin);
             outputMessage("Enter 'hint' for a list of possible commands");
-            String action = scanner.nextLine();// stores user input into 'action'
-            action = action.toUpperCase();
 
-            if(action.equals("HINT")) {
-                gameHelp();
-                System.out.println("Enter your choice " + currentPlayer.getName() + ": ");
-                action = scanner.nextLine().toUpperCase();
-            }
-            if(action.equals("DOUBLE")){
-                if((isPlayer1Turn && (DoubleDice.getOwner() == 2))||(!isPlayer1Turn && (DoubleDice.getOwner() == 1))){
-                    outputMessage(currentPlayer.getName() + "you are not currently in possession of the Double Dice so you cannot propose a double");
-                    outputMessage("Enter your move " + currentPlayer.getName() + ": ");
-                    action = scanner.nextLine().toUpperCase();
-                }
-                else{
-                    outputMessage(currentPlayer.getName() + " has proposed a double. " + otherPlayer.getName() + ", to accept and double the stakes of this game input 'A'. To Decline and forfeit this game input 'D'");
-                    String reaction = scanner.nextLine();
-                    reaction = reaction.toUpperCase();
-                    while (!reaction.equals("A") && !reaction.equals("D")) {
-                        errorMessage("Invalid input. Input must be A or D");
-                        reaction = scanner.nextLine().toUpperCase();
-                    }
-                    if(reaction.equals("A")){
-                        DoubleDice.increaseDouble(); //multiplier is doubled
-                        stake = DoubleDice.getDouble(); //stake equals new double amount
-                        DoubleDice.setOwner(otherPlayerNumber); //set owner of double dice to opposition player
-                        outputMessage("The stakes have been doubled. This game is now worth "+DoubleDice.getDouble() + " points. " + otherPlayer.getName() + " is now the holder of the doubling dice.");
-                        outputMessage("Enter your move " + currentPlayer.getName() + ": ");
-                        action = scanner.nextLine().toUpperCase();
-                    } else if(reaction.equals("D")) {
-                        outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
-                        currentPlayer.increaseScore(stake);
-                        gameInPlay = false;
-                        break;
-                    }
-                }
-            }
+            boolean turncomplete = false;
 
-            if (processAction(action, currentPlayer, otherPlayer)) {
-                isPlayer1Turn = !isPlayer1Turn;
+            while(!turncomplete) {
+                String action = scanner.nextLine();// stores user input into 'action'
+                action = action.toUpperCase();
+
+                if (processAction(action, currentPlayer, otherPlayer, otherPlayerNumber)) {
+                    isPlayer1Turn = !isPlayer1Turn;
+                    turncomplete = true;
+                }
             }
         }
     }
@@ -151,8 +76,17 @@ public class Game {
     /*
     Function to process the players command
      */
-    private boolean processAction(String action, Player currentPlayer, Player otherPlayer) {
+    private boolean processAction(String action, Player currentPlayer, Player otherPlayer, int otherPlayerNumber) {
         switch (action) {
+            case "HINT" -> {
+                gameHelp();
+                return false;
+            }
+            case "DOUBLE" -> {
+                gameInPlay = handleDoubleRequest(currentPlayer, otherPlayer, otherPlayerNumber);
+                return !gameInPlay;
+            }
+
             case "Q" -> {
                 gameInPlay = false;
                 errorMessage("Game over!");
@@ -160,154 +94,21 @@ public class Game {
             }
 
             case "ROLL" -> {
-                int[] roll = new int[2];
-                if(!isDiceSet) {
-                    roll = dice.roll();
-                }
-                else {
-                    roll = dice.getSetDice();
-                    isDiceSet = false;
-                }
-
-                outputMessage("Dice roll:" + Dice.diceFace(roll[0]) + " " + Dice.diceFace(roll[1]));
-
-                switchPlayer = false;
-                boolean[] usedDice;
-
-                boolean isDoubles = (roll[0] == roll[1]);
-
-                if(isDoubles){
-                    System.out.println("You rolled Doubles!");
-                    System.out.println();
-                    roll = new int[]{roll[0], roll[0], roll[0], roll[0]};
-                    usedDice = new boolean[]{false, false, false, false};
-                }
-                else
-                {
-                    usedDice = new boolean[]{false, false};
-                }
-
-                while(!switchPlayer) {
-                    // Generate list of legal moves
-                    List<String> legalMoves = generateLegalMoves(currentPlayer, roll, usedDice, isDoubles);
-
-                    if (legalMoves.isEmpty()) {
-                        outputMessage("No legal moves available. Turn passes to other player");
-                        return true;
-                    }
-
-                    // Display Legal Moves
-                    char moveLetter = 'A';
-                    for (String move : legalMoves) {
-                        System.out.println(moveLetter + ")" + move);
-                        moveLetter++;
-                    }
-                    System.out.println("--------------------------------------------------");
-                    System.out.println("Enter a command letter from the list to make a move: ");
-
-                    Scanner scanner = new Scanner(System.in);
-                    char userChoice = scanner.nextLine().charAt(0);
-                    userChoice = Character.toUpperCase(userChoice);
-                    boolean correctInput = false;
-
-                    // Process User Input
-                    for (int i = 0; i < legalMoves.size(); i++) {
-                        // Check which letter matches the user input
-                        if (userChoice == 'A' + i) {
-                            correctInput = true;
-                            String selectedMove = legalMoves.get(i);
-
-                            String[] moveParts = selectedMove.split(" ");
-                            String startPart = moveParts[1].split("-")[0];
-                            String endPart = moveParts[1].split("-")[1];
-                            int moveDistance;
-
-                            // Check if the move is off the bar
-                            if(startPart.equals("bar")){
-                                int endPilePosition = Integer.parseInt(endPart);
-
-                                // Process move from bar
-                                if(processMoveFromBar(currentPlayer, endPilePosition)){
-                                    moveDistance = (currentPlayer.isWhite()) ? 25 - endPilePosition : endPilePosition;
-                                    markUsedDice(roll, moveDistance, usedDice);
-                                }
-                            }
-                            else if(endPart.equals("off")) {
-                                int startPilePosition = Integer.parseInt(startPart);
-                                moveDistance = currentPlayer.isWhite()
-                                        ? (startPilePosition-1) - WHITEHOMEPOSITION  // White moves towards -1
-                                        : BLACKHOMEPOSITION - (startPilePosition-1); // Black moves to 24
-
-
-                                if(processMoveToHome(currentPlayer, startPilePosition)){
-                                    markUsedDice(roll, moveDistance, usedDice);
-                                }
-                            } // Standard move around the board
-                            else {
-                                int startPilePosition = Integer.parseInt(startPart);
-                                int endPilePosition = Integer.parseInt(endPart);
-                                if (processMove(currentPlayer, startPilePosition, endPilePosition)) {
-                                    System.out.println("Move Completed. ");
-                                    System.out.println();
-
-                                    // Mark the dice value used
-                                    moveDistance = Math.abs(endPilePosition - startPilePosition);
-                                    markUsedDice(roll, moveDistance, usedDice);
-                                }
-                            }
-                        }
-                    }
-                    if(!correctInput){
-                        errorMessage("Invalid Command!");
-                        continue;
-                    }
-                    Board.display(isPlayer1Turn);
-                    if (isGameWon(currentPlayer)) {
-                        int winConditionMultiplier = getWinCondition(currentPlayer, otherPlayer);
-                        outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
-                        currentPlayer.increaseScore(stake*winConditionMultiplier);
-                        gameInPlay = false;
-                        return false;
-                    }
-                    int movesAvailable = getRemainingMoves(usedDice);
-                    System.out.println("-----------------------------------------------");
-                    System.out.println("Number of remaining moves: " + movesAvailable);
-                    System.out.println("-----------------------------------------------");
-                    switchPlayer = (movesAvailable == 0);
-                }
-                noOfMoves += 1;
-                return true;
+                 boolean play;
+                 play = handleRoll(currentPlayer, otherPlayer, otherPlayerNumber);
+                 return play;
             }
+
             case "PIP" -> {
                 pipCount();
-                return true;
-            }
-            case "DICE" -> {
-                Scanner scanner = new Scanner(System.in);
-                int[] diceValues = new int[2];
-                System.out.println("Enter the two dice values in the form: <int> <int>, ensuring they are seperated by a space.");
-                String values = scanner.nextLine();
-                String[] parts = values.split(" ");
-
-                if (parts.length != 2) {
-                    errorMessage("Enter exactly two values");
-                }
-                else {
-                    if (isValidDicePair(parts)) {
-                        diceValues[0] = Integer.parseInt(parts[0]);
-                        diceValues[1] = Integer.parseInt(parts[1]);
-                        dice.setDice(diceValues[0], diceValues[1]);
-                        isDiceSet = true;
-                        System.out.println("Dice values now set for the next dice roll");
-                        System.out.println();
-                    } else {
-                        errorMessage("Invalid input. Enter two integer values!");
-                    }
-                }
-
                 return false;
-
             }
+
+            case "DICE" -> {
+                setDice();
+                return false;
+            }
+
             default -> {
                 errorMessage("Invalid command");
                 return false;
@@ -315,22 +116,98 @@ public class Game {
         }
     }
 
+    private boolean handleRoll(Player currentPlayer, Player otherPlayer, int otherPlayerNumber) {
+        switchPlayer = false;
+        int[] roll = generateDiceRoll(); // Generate dice roll - check if dice has been set and if not generate new values
+        outputMessage("Dice roll:" + Dice.diceFace(roll[0]) + " " + Dice.diceFace(roll[1]));
+
+        boolean isDoubles = checkIfDoubles(roll);
+        if(isDoubles){
+            roll = new int[]{roll[0], roll[0], roll[0], roll[0]};
+        }
+        boolean[] usedDice = generateDiceMarker(isDoubles);
+
+
+        while (!switchPlayer) {
+            // Generate list of legal moves
+            List<String> legalMoves = generateLegalMoves(currentPlayer, roll, usedDice, isDoubles);
+
+            if (legalMoves.isEmpty()) {
+                outputMessage("No legal moves available. Turn passes to other player");
+                return true;
+            }
+
+            // Display Legal Moves
+            String[] moveParts = getUserMove(legalMoves); // function to display the legal moves available and process user input
+            int moveDistance = getMoveDistance(moveParts, currentPlayer);
+
+            if(processMove(moveParts, moveDistance, currentPlayer)){
+                markUsedDice(roll, moveDistance, usedDice);
+            }
+
+            //Board.display(isPlayer1Turn);
+            board.notifyObservers();
+            if (board.checkWinCondition(currentPlayer)) {
+                int winConditionMultiplier = getWinCondition(currentPlayer, otherPlayer);
+                currentPlayer.increaseScore(stake * winConditionMultiplier);
+                gameInPlay = false;
+                return false;
+            }
+            int movesAvailable = getRemainingMoves(usedDice);
+            outputMessage("Number of Moves Remaining: " + movesAvailable);
+            switchPlayer = (movesAvailable == 0);
+        }
+        return true;
+    }
+
+    private boolean processMove(String[] moveParts, int moveDistance, Player currentPlayer) {
+        boolean moveCompleted = false;
+        if (moveParts[0].equals("bar")) {
+            int endPilePosition = Integer.parseInt(moveParts[1]);
+
+            // Process move from bar
+            if (processMoveFromBar(currentPlayer, endPilePosition)) {
+                moveCompleted = true;
+                //markUsedDice(roll, moveDistance, usedDice);
+            }
+
+        } else if (moveParts[1].equals("off")) {
+            int startPilePosition = Integer.parseInt(moveParts[0]);
+            if (processMoveToHome(currentPlayer, startPilePosition)) {
+                moveCompleted = true;
+                //markUsedDice(roll, moveDistance, usedDice);
+            }
+        } // Standard move around the board
+        else {
+            int startPilePosition = Integer.parseInt(moveParts[0]);
+            int endPilePosition = Integer.parseInt(moveParts[1]);
+
+            if (processMove(currentPlayer, startPilePosition, endPilePosition)) {
+                moveCompleted = true;
+                // Mark the dice value used
+                //markUsedDice(roll, moveDistance, usedDice);
+            }
+        }
+        return moveCompleted;
+    }
+
+    // Function to processMoveFromBar
     private boolean processMoveFromBar(Player currentPlayer, int endPilePosition) {
-        Pile targetPile = Board.piles[endPilePosition-1];
-        Pile barPile = currentPlayer.getChecker() == Checker.Colour.WHITE ? Board.bar[1] : Board.bar[0];
+        Pile targetPile = board.getPile(endPilePosition - 1);
+        Pile barPile = currentPlayer.getChecker() == Checker.Colour.WHITE ? board.getBarPile(Board.PLAYER1BARINDEX) : board.getBarPile(Board.PLAYER2BARINDEX);
         Checker checkerToMove = barPile.removeTopChecker();
 
-        if(targetPile.getNoOfCheckers() == 1){
+        if (targetPile.getNoOfCheckers() == 1) {
             Checker.Colour checkerOnEndPileColour = targetPile.getColour();
-            if(checkerToMove.getColour() != checkerOnEndPileColour){
+            if (checkerToMove.getColour() != checkerOnEndPileColour) {
                 int opponentBarIndex = (checkerOnEndPileColour == Checker.Colour.BLACK ? 0 : 1);
                 Checker checkerOnEndPile = targetPile.removeTopChecker();
-                Board.bar[opponentBarIndex].addChecker(checkerOnEndPile);
+                board.getBarPile(opponentBarIndex).addChecker(checkerOnEndPile);
             }
         }
 
         targetPile.addChecker(checkerToMove);
-        checkerToMove.setPosition(endPilePosition-1);
+        checkerToMove.setPosition(endPilePosition - 1);
 
         System.out.println("Moved " + currentPlayer.getChecker() + " checker from bar to position " + (endPilePosition + 1));
         return true;
@@ -344,7 +221,7 @@ public class Game {
         for (int i = 0; i < roll.length; i++) {
             if (!usedDice[i]) {
                 availableDice.append(roll[i]);
-                if(i != roll.length-1){
+                if (i != roll.length - 1) {
                     availableDice.append("-");
                 }
             }
@@ -358,9 +235,9 @@ public class Game {
         int playerBarIndex = (currentPlayer.getChecker() == Checker.Colour.BLACK) ? 0 : 1;
 
         // No checkers in the bar
-        if(Board.bar[playerBarIndex].getCheckers().isEmpty()) {
+        if (board.getBarPile(playerBarIndex).getCheckers().isEmpty()) {
             // Generate possible moves
-            for (Pile pile : Board.piles) {
+            for (Pile pile : board.getPiles()) {
                 // Check if pile has any checkers in it
                 if (!pile.getCheckers().isEmpty()) {
 
@@ -387,24 +264,23 @@ public class Game {
                     }
                 }
             }
-        }
-        else {
+        } else {
             System.out.println(currentPlayer.getName() + " has checkers on the bar.");
 
             Set<Integer> uniqueEndPiles = new HashSet<>();
 
             // Generate legal moves from the bar
-            for (int i=0 ; i < usedDice.length; i++) {
+            for (int i = 0; i < usedDice.length; i++) {
                 int diceRoll = roll[i];
                 if (!usedDice[i]) {
                     int targetPileIndex = (currentPlayer.getChecker() == Checker.Colour.BLACK)
                             ? diceRoll - 1 // Black Checker
                             : 24 - diceRoll; // White Checkers
 
-                    if(!uniqueEndPiles.contains(targetPileIndex)) {
-                        Pile targetPile = Board.piles[targetPileIndex];
+                    if (!uniqueEndPiles.contains(targetPileIndex)) {
+                        Pile targetPile = board.getPile(targetPileIndex);
                         // Check if the target pile is a valid move
-                        if(targetPile.getNoOfCheckers() < 2 || targetPile.getColour() == currentPlayer.getChecker()){
+                        if (targetPile.getNoOfCheckers() < 2 || targetPile.getColour() == currentPlayer.getChecker()) {
                             legalMoves.add("Move bar-" + (targetPileIndex + 1));
                             uniqueEndPiles.add(targetPileIndex);
                         }
@@ -415,7 +291,7 @@ public class Game {
         return legalMoves;
     }
 
-    private void generateNonDoubleMoves(int[] roll, boolean[] usedDice, int position, List<String> legalMoves, Player currentPlayer, boolean allInHomeRange, int direction){
+    private void generateNonDoubleMoves(int[] roll, boolean[] usedDice, int position, List<String> legalMoves, Player currentPlayer, boolean allInHomeRange, int direction) {
         Checker.Colour colour = currentPlayer.getChecker();
 
         // Single dice moves
@@ -427,7 +303,7 @@ public class Game {
         }
 
         // If all in home range
-        if(allInHomeRange){
+        if (allInHomeRange) {
             if (!usedDice[0] && position + direction * roll[0] == getHomePosition(direction)) {
                 legalMoves.add("Move " + (position + 1) + "-off");
             }
@@ -437,53 +313,53 @@ public class Game {
         }
     }
 
-    private void generateDoubleMoves(int roll, boolean[] usedDice, int position, List<String> legalMoves, Player currentPlayer, boolean allInHomeRange, int direction){
+    private void generateDoubleMoves(int roll, boolean[] usedDice, int position, List<String> legalMoves, Player currentPlayer, boolean allInHomeRange, int direction) {
         Checker.Colour colour = currentPlayer.getChecker();
 
         // Move distance remains the same since we rolled doubles
         int targetPosition = position + direction * roll;
         boolean moveOn = false;
 
-        for (int i=0 ; i < usedDice.length ; i++){
+        for (int i = 0; i < usedDice.length; i++) {
 
             if (!usedDice[i] && isLegalTarget(targetPosition, colour)) {
                 legalMoves.add("Move " + (position + 1) + "-" + (targetPosition + 1)); // Add legal move to list
                 moveOn = true;
             }
 
-            if(allInHomeRange){
-                if(!usedDice[i] && targetPosition == getHomePosition(direction)){
+            if (allInHomeRange) {
+                if (!usedDice[i] && targetPosition == getHomePosition(direction)) {
                     legalMoves.add("Move " + (position + 1) + "-off");
                     moveOn = true;
                 }
             }
 
-            if(moveOn){
+            if (moveOn) {
                 break;
             }
         }
     }
 
-    private boolean isLegalTarget(int targetPosition, Checker.Colour colour){
+    private boolean isLegalTarget(int targetPosition, Checker.Colour colour) {
         return targetPosition >= 0 && targetPosition <= 23 && board.isLegalMove(targetPosition, colour);
     }
 
-    private int getHomePosition(int direction){
+    private int getHomePosition(int direction) {
         return direction == 1 ? 24 : -1;
     }
 
     // Function to move a checker between two piles
     private boolean processMove(Player currentPlayer, int startPos, int endPos) {
-        Pile startPile = Board.piles[startPos-1];
-        Pile endPile = Board.piles[endPos-1];
+        Pile startPile = board.getPile(startPos - 1);
+        Pile endPile = board.getPile(endPos - 1);
         Checker checkerToMove = startPile.removeTopChecker();
 
-        if(endPile.getNoOfCheckers() == 1){
+        if (endPile.getNoOfCheckers() == 1) {
             Checker.Colour checkerOnEndPileColour = endPile.getColour();
-            if(checkerToMove.getColour() != checkerOnEndPileColour) {
+            if (checkerToMove.getColour() != checkerOnEndPileColour) {
                 int opponentBarIndex = (checkerOnEndPileColour == Checker.Colour.BLACK ? 0 : 1);
                 Checker checkerOnEndPile = endPile.removeTopChecker();
-                Board.bar[opponentBarIndex].addChecker(checkerOnEndPile);
+                board.getBarPile(opponentBarIndex).addChecker(checkerOnEndPile);
             }
         }
         endPile.addChecker(checkerToMove);
@@ -492,19 +368,19 @@ public class Game {
         return true;
     }
 
-    private boolean processMoveToHome(Player currentPlayer, int startPos){
-        Pile startPile = Board.piles[startPos-1];
+    private boolean processMoveToHome(Player currentPlayer, int startPos) {
+        Pile startPile = board.getPile(startPos - 1);
         Checker checkerToMove = startPile.removeTopChecker();
 
         int homePosition = currentPlayer.isWhite() ? 0 : 1; // 0 for white, 1 for black
 
-        Board.home[homePosition].addChecker(checkerToMove);
+        board.getHomePile(homePosition).addChecker(checkerToMove);
         return true;
     }
 
-    private boolean allCheckersInHomeRange(Player player){
+    private boolean allCheckersInHomeRange(Player player) {
         Checker.Colour colour = player.getChecker();
-        for (Pile pile : Board.piles) {
+        for (Pile pile : board.getPiles()) {
             for (Checker checker : pile.getCheckers()) {
                 if (checker.getColour() == colour) {
                     int position = checker.getPosition();
@@ -518,13 +394,13 @@ public class Game {
         return true;
     }
 
-    public int getWinCondition(Player winningPlayer, Player otherPlayer){
+    public int getWinCondition(Player winningPlayer, Player otherPlayer) {
         int winningPlayerHomeIndex = (winningPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1HOMEINDEX : Board.PLAYER2HOMEINDEX;
         int losingPlayerHomeIndex = (otherPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1HOMEINDEX : Board.PLAYER2HOMEINDEX;
         int losingPlayerBarIndex = (otherPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1BARINDEX : Board.PLAYER2BARINDEX;
 
-        boolean hasLosingPlayerBorneOffAny = Board.home[losingPlayerHomeIndex].getNoOfCheckers() > 0;
-        boolean hasLosingPlayerCheckersOnBar = Board.bar[losingPlayerBarIndex].getNoOfCheckers() > 0;
+        boolean hasLosingPlayerBorneOffAny = board.getHomePile(losingPlayerHomeIndex).getNoOfCheckers() > 0;
+        boolean hasLosingPlayerCheckersOnBar = board.getBarPile(losingPlayerBarIndex).getNoOfCheckers() > 0;
 
         // Check if losing player has any checkers in opponents home board
         boolean hasLosingPlayerInOppHome = false;
@@ -532,8 +408,8 @@ public class Game {
         int opponentEnd = (winningPlayer.getChecker() == Checker.Colour.WHITE) ? 5 : 23;  // End of opponent home board
 
         for (int i = opponentStart; i <= opponentEnd; i++) {
-            if (!Board.piles[i].getCheckers().isEmpty() &&
-                    Board.piles[i].getCheckers().get(0).getColour() == otherPlayer.getChecker()) {
+            if (!board.getPile(i).getCheckers().isEmpty() &&
+                    board.getPile(i).getCheckers().get(0).getColour() == otherPlayer.getChecker()) {
                 hasLosingPlayerInOppHome = true;
                 break;
             }
@@ -552,25 +428,17 @@ public class Game {
         }
     }
 
-    /*
-    ISSUE: usedDice is coming into this function already marked.
-     */
-    /*
-    FIXED
-     */
-    private void markUsedDice(int[] roll, int moveDistance, boolean[] usedDice){
+    private void markUsedDice(int[] roll, int moveDistance, boolean[] usedDice) {
 
         // If the user is playing doubles
-        if(roll.length == 4) {
+        if (roll.length == 4) {
             for (int i = 0; i < roll.length; i++) {
                 if (!usedDice[i] && roll[i] == moveDistance) {
                     usedDice[i] = true;
                     return;
                 }
             }
-        }
-        else
-        {
+        } else {
             if (moveDistance == roll[0] && !usedDice[0]) {
                 usedDice[0] = true;
             }
@@ -580,24 +448,24 @@ public class Game {
         }
     }
 
-    private int getRemainingMoves(boolean[] usedDice){
+    private int getRemainingMoves(boolean[] usedDice) {
         int remaining = 0;
-        for (boolean used : usedDice){
-            if(!used) {
+        for (boolean used : usedDice) {
+            if (!used) {
                 remaining++;
             }
         }
         return remaining;
     }
 
-    public void displayPipNumbers(Player currentPlayer, boolean isPlayer1Turn){
+    public void displayPipNumbers(Player currentPlayer, boolean isPlayer1Turn) {
         System.out.println("Pip scores for " + currentPlayer.getName() + ":");
 
-        for (int i=0; i<24; i++){
-            int checkerCount = Board.piles[i].getNoOfCheckers();
+        for (int i = 0; i < 24; i++) {
+            int checkerCount = board.getPile(i).getNoOfCheckers();
 
-            if(Board.piles[i].getColour() == currentPlayer.getChecker() && Board.piles[i].getNoOfCheckers() > 0){
-                int pipNumber = isPlayer1Turn ? i+1 : 24-i;
+            if (board.getPile(i).getColour() == currentPlayer.getChecker() && board.getPile(i).getNoOfCheckers() > 0) {
+                int pipNumber = isPlayer1Turn ? i + 1 : 24 - i;
                 int pipScore = checkerCount * pipNumber;
 
                 System.out.println("Cone " + (i + 1) + " -> " + pipScore);
@@ -605,7 +473,7 @@ public class Game {
         }
     }
 
-    public boolean isValidDicePair(String [] parts){
+    public boolean isValidDicePair(String[] parts) {
         boolean isValid = true;
 
         try {
@@ -633,12 +501,12 @@ public class Game {
         int noOfPipsWhite = 0;
         int noOfPipsBlack = 0;
         for (int i = 0; i < 24; i++) {
-                if (Board.piles[i].getColour() == Checker.Colour.WHITE) {
-                    noOfPipsWhite += Board.piles[i].getNoOfCheckers() * (i + 1) + Board.bar[1].getNoOfCheckers() * (24);
-                } else {
-                    noOfPipsBlack += Board.piles[i].getNoOfCheckers() * (24 - i) + Board.bar[0].getNoOfCheckers() * (24);
-                }
+            if (board.getPile(i).getColour() == Checker.Colour.WHITE) {
+                noOfPipsWhite += board.getPile(i).getNoOfCheckers() * (i + 1) + board.getBarPile(1).getNoOfCheckers() * (24);
+            } else {
+                noOfPipsBlack += board.getPile(i).getNoOfCheckers() * (24 - i) + board.getBarPile(0).getNoOfCheckers() * (24);
             }
+        }
         outputMessage("⚪ Pip count : " + noOfPipsWhite + "  ⚫ Pip count : " + noOfPipsBlack);
     }
 
@@ -687,11 +555,178 @@ public class Game {
     }
 
     private void gameHelp() {
-        outputMessage("Enter 'roll' to roll the dice, 'Q' to quit the game, 'pip' to view pip count, 'd'to propose a double!");
+        outputMessage("Enter 'roll' to roll the dice, 'Q' to quit the game, 'pip' to view pip count, 'double' to propose a double!");
         System.out.println();
     }
 
-    private boolean isGameWon(Player currentPlayer) {
-        return board.checkWinCondition(currentPlayer);
+    private void firstToPlay(Player player1, Player player2) {
+        while (equalDice) {
+            int[] startingRoll = dice.roll();
+            int player1Roll = startingRoll[0];
+            int player2Roll = startingRoll[1];
+            outputMessage(player1.getName() + " rolls a " + Dice.diceFace(player1Roll) + " and " + player2.getName() + " rolls a " + Dice.diceFace(player2Roll));
+            if (player1Roll > player2Roll) {
+                outputMessage(player1.getName() + " will go first!");
+                equalDice = false;
+            } else if (player2Roll > player1Roll) {
+                outputMessage(player2.getName() + " will go first!");
+                isPlayer1Turn = false;
+                equalDice = false;
+            } else {
+                outputMessage("Dice rolls are equal so will go again!");
+            }
+        }
+    }
+
+    private boolean handleDoubleRequest(Player currentPlayer, Player otherPlayer, int otherPlayerNumber){
+        boolean playOn = true;
+        Scanner scanner = new Scanner(System.in);
+        if ((isPlayer1Turn && (DoubleDice.getOwner() == 2)) || (!isPlayer1Turn && (DoubleDice.getOwner() == 1))) {
+            outputMessage(currentPlayer.getName() + "you are not currently in possession of the Double Dice so you cannot propose a double");
+        } else {
+            outputMessage(currentPlayer.getName() + " has proposed a double. " + otherPlayer.getName() + ", to accept and double the stakes of this game input 'A'. To Decline and forfeit this game input 'D'");
+            String reaction = scanner.nextLine();
+            reaction = reaction.toUpperCase();
+            while (!reaction.equals("A") && !reaction.equals("D")) {
+                errorMessage("Invalid input. Input must be A or D");
+                reaction = scanner.nextLine().toUpperCase();
+            }
+            if (reaction.equals("A")) {
+                doubleDice.increaseDouble(); //multiplier is doubled
+                stake = DoubleDice.getDouble(); //stake equals new double amount
+                doubleDice.setOwner(otherPlayerNumber); //set owner of double dice to opposition player
+                outputMessage("The stakes have been doubled. This game is now worth " + DoubleDice.getDouble() + " points. " + otherPlayer.getName() + " is now the holder of the doubling dice.");
+                System.out.println("Enter your  next move " + currentPlayer.getName() + ", or 'hint' for a list of possible commands: ");
+            } else {
+                outputMessage("Congratulations " + currentPlayer.getName() + " you win!");
+                currentPlayer.increaseScore(stake);
+                playOn = false;
+            }
+        }
+        return playOn;
+    }
+
+    private boolean checkIfDoubles(int[] roll){
+        boolean isDoubles;
+        if(roll[0] == roll[1]){
+            System.out.println("You rolled doubles!");
+            isDoubles = true;
+        }
+        else{
+            isDoubles = false;
+        }
+        return isDoubles;
+    }
+
+    private int getMoveDistance(String[] moveParts, Player currentPlayer) {
+        // Special case: move starts from the bar
+        if (moveParts[0].equals("bar")) {
+            int endPilePosition = Integer.parseInt(moveParts[1]);
+
+            // White starts from 25, Black starts from 0
+            return currentPlayer.isWhite()
+                    ? WHITEBARPOSITION - endPilePosition // White distance calculation
+                    : endPilePosition;                  // Black distance calculation
+        }
+
+        // Special case: move ends "off" the board
+        if (moveParts[1].equals("off")) {
+            int startPilePosition = Integer.parseInt(moveParts[0]);
+
+            // White moves towards -1, Black moves towards 24
+            return currentPlayer.isWhite()
+                    ? (startPilePosition - 1) - WHITEHOMEPOSITION  // Distance for White
+                    : BLACKHOMEPOSITION - (startPilePosition - 1); // Distance for Black
+        }
+
+        // Standard case: move from one pile to another
+        int startPilePosition = Integer.parseInt(moveParts[0]);
+        int endPilePosition = Integer.parseInt(moveParts[1]);
+
+        // Calculate absolute move distance
+        return Math.abs(endPilePosition - startPilePosition);
+    }
+
+    private String[] getUserMove(List<String> legalMoves) {
+        char moveLetter = 'A';
+        for (String move : legalMoves) {
+            System.out.println(moveLetter + ")" + move);
+            moveLetter++;
+        }
+        System.out.println("--------------------------------------------------");
+        Scanner scanner = new Scanner(System.in);
+        char userChoice;
+
+        while(true) {
+            System.out.println("Enter a command letter from the list to make a move: ");
+            String input = scanner.nextLine().toUpperCase(); // Convert input to uppercase for consistency
+
+            // Validate input length and character
+            if (input.length() == 1) {
+                userChoice = input.charAt(0);
+
+                // Check if userChoice is within the valid range of legal moves
+                int choiceIndex = userChoice - 'A'; // Calculate the index from the character
+                if (choiceIndex >= 0 && choiceIndex < legalMoves.size()) {
+                    String selectedMove = legalMoves.get(choiceIndex);
+
+                    // Parse the move into parts
+                    String[] moveParts = selectedMove.split(" ");
+                    String startPart = moveParts[1].split("-")[0];
+                    String endPart = moveParts[1].split("-")[1];
+
+                    return new String[] {startPart, endPart}; // Return the parsed parts
+                }
+            }
+            // If input is invalid, prompt the user again
+            System.out.println("Invalid input. Please enter a letter corresponding to a legal move.");
+        }
+    }
+
+    private void setDice() {
+        Scanner scanner = new Scanner(System.in);
+        int[] diceValues = new int[2];
+        boolean validInput = false; // Flag to track if valid dice values are entered
+
+        while (!validInput) {
+            System.out.println("Enter the two dice values in the form: <int> <int>, ensuring they are separated by a space:");
+            String values = scanner.nextLine();
+            String[] parts = values.split(" ");
+
+            if (isValidDicePair(parts)) {
+                diceValues[0] = Integer.parseInt(parts[0]);
+                diceValues[1] = Integer.parseInt(parts[1]);
+                dice.setDice(diceValues[0], diceValues[1]);
+                isDiceSet = true;
+                validInput = true; // Exit the loop
+                System.out.println("Dice values now set for the next dice roll.");
+                System.out.println("Enter your next play or 'hint' for a list of possible commands: ");
+            } else {
+                errorMessage("Invalid input. Enter two valid integer values!");
+            }
+        }
+    }
+
+    private int[] generateDiceRoll() {
+        int[] roll;
+        if (!isDiceSet) {
+            // Roll the dice if no manual values are set
+            roll = dice.roll();
+        } else {
+            // Return the manually set dice values
+            isDiceSet = false; // Reset the flag after use
+            roll = dice.getSetDice();
+        }
+        return roll;
+    }
+
+    private boolean[] generateDiceMarker(boolean isDoubles){
+        boolean[] usedDice;
+        if (isDoubles) {
+            usedDice = new boolean[]{false, false, false, false};
+        } else {
+            usedDice = new boolean[]{false, false};
+        }
+        return usedDice;
     }
 }

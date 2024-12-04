@@ -53,18 +53,3 @@ public class Match {
         }
     }
 }
-
-/*
-String userResponse;
-                System.out.println("Would you like to play again? (Y/N):");
-                userResponse = scanner.nextLine();
-                if (userResponse.equals("Y")) {
-                    playAgain = true;
-                }
-                else if (userResponse.equals("N")) {
-                    playAgain = false;
-                }
-                else{
-
-                }
- */
