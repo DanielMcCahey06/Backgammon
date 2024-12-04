@@ -2,15 +2,16 @@ import java.util.*;
 
 public class Dice {
    private static final Random random = new Random();
+   private final int[] diceValues = new int[2];
 
    // Constructor
     public Dice() {
     }
 
-    public static int[] roll() {
-        int dice1Value = random.nextInt(6) + 1;
-        int dice2Value = random.nextInt(6) + 1;
-        return new int[]{dice1Value, dice2Value};
+    public int[] roll() {
+        diceValues[0] = random.nextInt(6) + 1;
+        diceValues[1] = random.nextInt(6) + 1;
+        return new int[]{diceValues[0], diceValues[1]};
     }
 
     public static String diceFace(int value) {
@@ -25,7 +26,13 @@ public class Dice {
         };
     }
 
-    public static int[] roll(int val1, int val2) {
-        return new int[]{val1, val2};
+    public void setDice(int val1, int val2) {
+        diceValues[0] = val1;
+        diceValues[1] = val2;
     }
+
+    public int[] getSetDice(){
+        return diceValues;
+    }
+
 }

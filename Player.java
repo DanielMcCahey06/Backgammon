@@ -23,16 +23,20 @@ public class Player {
     public String getName() {
         return name;
     }
+
     public Checker.Colour getChecker() {
         return checker;
     }
+
     public String getDisplay() {
         return checker == Checker.Colour.WHITE ? "⚪" : "⚫";
     }
+
     //getter to obtain players current score
     public int getScore() {
         return score;
     }
+
     // function to increase players score by a set amount
     public void increaseScore(int amount) {
         score += amount;

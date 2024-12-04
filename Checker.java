@@ -9,7 +9,7 @@ public class Checker {
 
     // Constructor
     public Checker(int position, Colour colour) {
-        this.position = position;
+        this.position = position; //position denotes which pile the checker is in
         this.colour = colour;
     }
 
