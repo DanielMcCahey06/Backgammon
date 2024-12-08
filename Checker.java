@@ -28,7 +28,6 @@ public class Checker {
 
     public String toString() {
         return colour == Colour.WHITE ? "⚪" : "⚫";
-        //return colour == Colour.WHITE ? "X" : "O";
-}
+    }
 
 }

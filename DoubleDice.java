@@ -11,6 +11,10 @@ public class DoubleDice {
         return multiplier;  //getter to return multiplier
     }
 
+    public void setDouble(int d){
+        multiplier = d;
+    }
+
     //function to increase multiplier as long as its below 32 (max double value)
     public void increaseDouble(){
         if(multiplier == 32){

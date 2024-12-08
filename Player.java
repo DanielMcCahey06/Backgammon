@@ -1,5 +1,3 @@
-import java.util.*;
-
 public class Player {
     private final String name;
     private final Checker.Colour checker;
@@ -7,6 +5,9 @@ public class Player {
 
     // Constructor for Player Class
     public Player(String playerName, Checker.Colour checker) {
+        if (playerName == null || playerName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Player name cannot be null or empty");
+        }
         this.name = playerName;
         this.checker = checker;
         score = 0; //when player is made their initial score is 0
@@ -36,5 +37,9 @@ public class Player {
     // function to increase players score by a set amount
     public void increaseScore(int amount) {
         score += amount;
+    }
+
+    public void setScore(int amount) {
+        score = amount;
     }
 }

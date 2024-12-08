@@ -1,10 +1,10 @@
 import java.util.*;
 
 public class Dice {
-   private static final Random random = new Random();
-   private final int[] diceValues = new int[2];
+    private static final Random random = new Random();
+    private final int[] diceValues = new int[2];
 
-   // Constructor
+    // Constructor
     public Dice() {
     }
 
