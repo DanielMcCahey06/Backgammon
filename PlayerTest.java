@@ -115,4 +115,3 @@ class PlayerTest {
         assertEquals(1, player.getScore(), "Score should handle threshold +1 correctly");
     }
 }
-

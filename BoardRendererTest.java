@@ -74,8 +74,3 @@ class BoardRendererTest {
         assertTrue(output.contains("⚫"), "Should display the updated BLACK checker");
     }
 }
-
-
-
-
-

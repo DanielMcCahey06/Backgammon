@@ -142,57 +142,74 @@ class GameTest {
 
     @Test
     void testProcessActionDouble() {
-        TestGame testGame = new TestGame();
+        TestGame testGame = new TestGame(); // Create a new TestGame instance
 
-        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE);
-        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK);
+        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE); // Create a white player
+        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK); // Create a black player
 
-        Game.gameInPlay = true;
+        Game.gameInPlay = true; // Set the game to be in play
 
+        // Process the DOUBLE action
         boolean result = testGame.processAction("DOUBLE", currentPlayer, otherPlayer, 2);
 
+        // Verify that handleDoubleRequest was called
         assertTrue(testGame.handleDoubleRequestCalled, "handleDoubleRequest should be called for DOUBLE action.");
+
+        // Verify that the action returns false, since handleDoubleRequest should set gameInPlay to false
         assertFalse(result, "DOUBLE action should return false if gameInPlay is set to false by handleDoubleRequest.");
     }
 
     @Test
     void testProcessActionRoll() {
-        TestGame testGame = new TestGame();
+        TestGame testGame = new TestGame(); // Create a new TestGame instance
 
-        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE);
-        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK);
+        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE); // Create a white player
+        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK); // Create a black player
 
+        // Process the ROLL action
         boolean result = testGame.processAction("ROLL", currentPlayer, otherPlayer, 2);
 
+        // Verify that handleRoll was called
         assertTrue(testGame.handleRollCalled, "handleRoll should be called for ROLL action.");
+
+        // Verify that the action returns true, since handleRoll should complete the turn
         assertTrue(result, "ROLL action should return true if handleRoll completes the turn.");
     }
 
     @Test
     void testProcessActionPip() {
-        TestGame testGame = new TestGame();
+        TestGame testGame = new TestGame(); // Create a new TestGame instance
 
-        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE);
-        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK);
+        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE); // Create a white player
+        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK); // Create a black player
 
+        // Process the PIP action
         boolean result = testGame.processAction("PIP", currentPlayer, otherPlayer, 2);
 
+        // Verify that pipCount was called
         assertTrue(testGame.pipCountCalled, "pipCount should be called for PIP action.");
+
+        // Verify that the action returns false, as PIP does not affect the game state
         assertFalse(result, "PIP action should return false.");
     }
 
     @Test
     void testProcessActionDice() {
-        TestGame testGame = new TestGame();
+        TestGame testGame = new TestGame(); // Create a new TestGame instance
 
-        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE);
-        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK);
+        Player currentPlayer = new Player("Alice", Checker.Colour.WHITE); // Create a white player
+        Player otherPlayer = new Player("Bob", Checker.Colour.BLACK); // Create a black player
 
+        // Process the DICE action
         boolean result = testGame.processAction("DICE", currentPlayer, otherPlayer, 2);
 
+        // Verify that setDice was called
         assertTrue(testGame.setDiceCalled, "setDice should be called for DICE action.");
+
+        // Verify that the action returns false, since DICE does not complete the turn
         assertFalse(result, "DICE action should return false.");
     }
+
 
     @Test
     void testStartOriginalMethod() {
@@ -502,7 +519,7 @@ class GameTest {
         boolean[] usedDice3 = {false, false, false, false};
         game.markUsedDice(doubleDiceRoll, 6, usedDice3);
         assertTrue(usedDice3[0] || usedDice3[1] || usedDice3[2] || usedDice3[3],
-        "At least one die should be marked as used in a doubles roll.");
+                "At least one die should be marked as used in a doubles roll.");
 
         // Test scenario 4: Attempting to use a dice value that doesn't match any die
         int[] diceRoll4 = {2, 5};
@@ -522,7 +539,7 @@ class GameTest {
         boolean[] usedDice6 = {true, true, true, true};
         game.markUsedDice(doubleDiceRoll, 6, usedDice6);
         assertTrue(usedDice6[0] && usedDice6[1] && usedDice6[2] && usedDice6[3],
-        "No changes should occur when all dice are already marked as used.");
+                "No changes should occur when all dice are already marked as used.");
     }
 
 
@@ -649,5 +666,4 @@ class GameTest {
     }
 
 }
-
 
