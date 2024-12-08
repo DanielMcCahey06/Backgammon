@@ -1,17 +1,19 @@
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 public class Pile {
-    private List<Checker> checkers = new ArrayList<>();
+    private final List<Checker> checkers = new ArrayList<>();
+
+    public List<Checker> getCheckers() {
+        return checkers;
+    }
 
     public void addChecker(Checker checker) {
         checkers.add(checker);
     }
 
-    public void removeChecker(Checker checker) {
-        if (!checkers.isEmpty()) {
-            checkers.removeLast();
-        }
+    public Checker removeTopChecker() {
+        return checkers.remove(checkers.size() - 1);
     }
 
     public int getNoOfCheckers() {
@@ -25,13 +27,8 @@ public class Pile {
             return null;
         }
     }
+
     public Checker get(int index) {
         return checkers.get(index);
     }
-
-    /*public boolean canAddChecker(Checker checker) {
-        if (checkers.isEmpty()) {
-            return true;
-        } else if (checkers.contains(getColour() == checker.getColour())) {}
-    }*/
 }
