@@ -1,4 +1,7 @@
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class Game {
     // Indicates whether to switch turns
@@ -84,11 +87,44 @@ public class Game {
                     break;
                 }
 
+                if (action.startsWith("TEST ")) {
+                    String filename = action.substring(5).trim();
+                    runTestFile(filename, player1, player2);
+                    continue;
+                }
+
                 if (processAction(action, currentPlayer, otherPlayer, otherPlayerNumber)) {
                     isPlayer1Turn = !isPlayer1Turn;
                     turncomplete = true;
                 }
             }
+        }
+    }
+
+    public void runTestFile(String filename, Player player1, Player player2) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim().toUpperCase();
+                if (!line.isEmpty()) {
+                    System.out.println("Executing command: " + line);
+                    boolean continueGame = processAction(line,
+                            isPlayer1Turn ? player1 : player2,
+                            isPlayer1Turn ? player2 : player1,
+                            isPlayer1Turn ? 2 : 1);
+
+                    if (quitGame) {
+                        System.out.println("Test execution stopped: Game quit.");
+                        break;
+                    }
+
+                    if (continueGame) {
+                        isPlayer1Turn = !isPlayer1Turn;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading test file: " + e.getMessage());
         }
     }
 
