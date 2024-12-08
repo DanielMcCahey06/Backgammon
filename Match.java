@@ -3,7 +3,7 @@ import java.util.Scanner;
 public class Match {
     public static int pointsToWin; // the amount of points needed to win
     public static boolean playAgain = true;
-    private Scanner scanner; // Declare the scanner field
+    private final Scanner scanner; // Declare the scanner field
 
     public Match(Scanner scanner){
         this.scanner = scanner;
@@ -15,23 +15,18 @@ public class Match {
 
     public void playMatch() {
         while (playAgain) {
-            System.out.println("Welcome to Backgammon");
 
+            System.out.println("Welcome to Backgammon");
             getMatchPoints();
 
             // Get player names
             Player player1 = getPlayerDetails(1, Checker.Colour.WHITE);
             Player player2 = getPlayerDetails(2, Checker.Colour.BLACK);
 
-            while (player1.getScore() < pointsToWin && player2.getScore() < pointsToWin) {
+            // Continue playing until a player has enough points to win
+            while (player1.getScore() < pointsToWin && player2.getScore() < pointsToWin && !Game.quitGame) {
                 Game game = createGame();
-                // Break the loop if the game was quit
-                boolean gameQuit = game.start(player1, player2);
-                if (gameQuit) {
-                    System.out.println("Game was quit. Exiting match...");
-                    playAgain = false;
-                    return; // Exit match loop
-                }
+                game.start(player1, player2);
             }
 
             displayMatchWinner(player1, player2);
@@ -41,7 +36,7 @@ public class Match {
 
     /**
      * Prompts the user to enter the number of points needed to win the match.
-     */
+    **/
     public void getMatchPoints() {
         System.out.println("How many points would you like to play to?");
         boolean validPointsInput = false;
@@ -84,7 +79,7 @@ public class Match {
      */
     public void displayMatchWinner(Player player1, Player player2) {
         if (player1.getScore() >= pointsToWin) {
-            Game.outputMessage(player1.getName() + " has won the match, congratulations! ");
+            Game.outputMessage(player1.getName() + " has won the game! ");
         }
         if (player2.getScore() >= pointsToWin) {
             Game.outputMessage(player2.getName() + " has won the match, congratulations! ");
@@ -104,6 +99,8 @@ public class Match {
             if (userResponse.equalsIgnoreCase("Y")) {
                 validResponse = true;
                 playAgain = true;
+                Game.quitGame = false;
+                Game.gameInPlay = true;
             } else if (userResponse.equalsIgnoreCase("N")) {
                 validResponse = true;
                 playAgain = false;
@@ -113,3 +110,5 @@ public class Match {
         }
     }
 }
+
+

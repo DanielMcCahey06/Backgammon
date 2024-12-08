@@ -1,23 +1,27 @@
 import java.util.*;
 
 public class Game {
+    // Indicates whether to switch turns
     protected boolean switchPlayer;
+    // Constants for keyboard positions
     protected static final int WHITEHOMEPOSITION = -1;
     protected static final int BLACKHOMEPOSITION = 24;
     protected static final int WHITEBARPOSITION = 25;
+    // Game components
     protected Board board;
     protected static Dice dice;
+    // Flags for game state
     protected static boolean isDiceSet = false;
     protected boolean equalDice = true; // check if dice rolls are equal at the start to decide the first player
     public static boolean gameInPlay = true;
     protected boolean isPlayer1Turn = true; // keep track of whose turn it is
+    public static boolean quitGame = false;
+    // Formatting and game settings
     protected static final int width = 50;
     protected int stake = 1; //how much points the game is worth. can be doubled
     protected DoubleDice doubleDice;
-
+    // Output Formatting
     public static final String border = "-".repeat(width);
-
-    // Colour Codes
     public static final String Green = "\u001B[32m";
     public static final String Red = "\u001B[31m";
     public static final String Reset = "\u001B[0m";
@@ -26,25 +30,29 @@ public class Game {
         initialiseGame(); // Set up game board with checkers in their starting positions
     }
 
+    // initialise the game components
     protected void initialiseGame() {
         board = createBoard();
         dice = new Dice();
         BoardRenderer boardRenderer = new BoardRenderer(board); // Create BoardRenderer
         board.addObserver(boardRenderer); // Register BoardRenderer as an observer
-        doubleDice = new DoubleDice(); //intialise Double Dice
+        doubleDice = new DoubleDice(); // intialise Double Dice
         outputMessage("Welcome To Backgammon!");
+        gameInPlay = true;
     }
 
+    // Creates and returns a new board
     protected Board createBoard() {
         return new Board();
     }
 
-    protected boolean start(Player player1, Player player2) {
+    protected void start(Player player1, Player player2) {
         Scanner scanner = new Scanner(System.in); // allows reading from the console
         System.out.println("Now to determine who goes first!");
 
         // Call function which determines who goes first
         firstToPlay(player1, player2);
+        gameInPlay = true;
 
         /*
         Main game loop. Checks which players turn it is. Displays the board for that player and takes in the users
@@ -69,72 +77,71 @@ public class Game {
                 String action = scanner.nextLine();// stores user input into 'action'
                 action = action.toUpperCase();
 
+                if(action.equals("Q")){
+                    gameInPlay = false;
+                    quitGame = true;
+                    errorMessage("Game Over!");
+                    break;
+                }
+
                 if (processAction(action, currentPlayer, otherPlayer, otherPlayerNumber)) {
                     isPlayer1Turn = !isPlayer1Turn;
                     turncomplete = true;
                 }
-
-                if(!gameInPlay){
-                    return true;
-                }
             }
         }
-        return false;
     }
 
-    /*
-    Function to process the players command
-     */
+
+    // Processes a player's action based on their input
     protected boolean processAction(String action, Player currentPlayer, Player otherPlayer, int otherPlayerNumber) {
         switch (action) {
             case "HINT" -> {
-                gameHelp();
+                gameHelp(); // Display help commands
                 return false;
             }
             case "DOUBLE" -> {
-                gameInPlay = handleDoubleRequest(currentPlayer, otherPlayer, otherPlayerNumber);
-                return !gameInPlay;
-            }
-
-            case "Q" -> {
-                gameInPlay = false;
-                errorMessage("Game over!");
-                return false;
+                // Handle doubling the stakes; ends the game if declined
+                gameInPlay = handleDoubleRequest(currentPlayer, otherPlayer, otherPlayerNumber); // returns false if player declines
+                return !gameInPlay; // true if player declines
             }
 
             case "ROLL" -> {
+                // Handle dice rolling and moves
                 boolean play;
                 play = handleRoll(currentPlayer, otherPlayer, otherPlayerNumber);
-                return play;
+                return play; // returns false if player won
             }
 
             case "PIP" -> {
-                pipCount();
+                pipCount(); // Display Pip Count
                 return false;
             }
 
             case "DICE" -> {
-                setDice();
+                setDice(); // Allow manual dice setting
                 return false;
             }
 
             default -> {
+                // handle invalid input
                 errorMessage("Invalid command");
                 return false;
             }
         }
     }
 
+    // Handles the dice roll and player actions during their turn
     protected boolean handleRoll(Player currentPlayer, Player otherPlayer, int otherPlayerNumber) {
-        switchPlayer = false;
+        switchPlayer = false; // Initialize without switching players
         int[] roll = generateDiceRoll(); // Generate dice roll - check if dice has been set and if not generate new values
         outputMessage("Dice roll:" + Dice.diceFace(roll[0]) + " " + Dice.diceFace(roll[1]));
 
-        boolean isDoubles = checkIfDoubles(roll);
+        boolean isDoubles = checkIfDoubles(roll); // Check for doubles
         if(isDoubles){
-            roll = new int[]{roll[0], roll[0], roll[0], roll[0]};
+            roll = new int[]{roll[0], roll[0], roll[0], roll[0]}; // Use all four dice as doubles
         }
-        boolean[] usedDice = generateDiceMarker(isDoubles);
+        boolean[] usedDice = generateDiceMarker(isDoubles); // Track dice usage
 
 
         while (!switchPlayer) {
@@ -146,12 +153,12 @@ public class Game {
                 return true;
             }
 
-            // Display Legal Moves
+            // Process player's selected move
             String[] moveParts = getUserMove(legalMoves); // function to display the legal moves available and process user input
             int moveDistance = getMoveDistance(moveParts, currentPlayer);
 
             if(processMove(moveParts, moveDistance, currentPlayer)){
-                markUsedDice(roll, moveDistance, usedDice);
+                markUsedDice(roll, moveDistance, usedDice); // Mark dice as used
             }
 
             //Board.display(isPlayer1Turn);
@@ -160,8 +167,9 @@ public class Game {
                 int winConditionMultiplier = getWinCondition(currentPlayer, otherPlayer);
                 currentPlayer.increaseScore(stake * winConditionMultiplier);
                 gameInPlay = false;
-                return false;
+                return true;
             }
+            // Determine remaining moves and switch turns if none are left
             int movesAvailable = getRemainingMoves(usedDice);
             outputMessage("Number of Moves Remaining: " + movesAvailable);
             switchPlayer = (movesAvailable == 0);
@@ -169,9 +177,10 @@ public class Game {
         return true;
     }
 
+    // Processes a move based on its type (from bar, to home, or standard)
     protected boolean processMove(String[] moveParts, int moveDistance, Player currentPlayer) {
         boolean moveCompleted = false;
-        if (moveParts[0].equals("bar")) {
+        if (moveParts[0].equals("bar")) { // Move from bar to pile
             int endPilePosition = Integer.parseInt(moveParts[1]);
 
             // Process move from bar
@@ -180,11 +189,10 @@ public class Game {
                 //markUsedDice(roll, moveDistance, usedDice);
             }
 
-        } else if (moveParts[1].equals("off")) {
+        } else if (moveParts[1].equals("off")) { // Move a checker to home
             int startPilePosition = Integer.parseInt(moveParts[0]);
             if (processMoveToHome(currentPlayer, startPilePosition)) {
                 moveCompleted = true;
-                //markUsedDice(roll, moveDistance, usedDice);
             }
         } // Standard move around the board
         else {
@@ -193,14 +201,12 @@ public class Game {
 
             if (processMove(currentPlayer, startPilePosition, endPilePosition)) {
                 moveCompleted = true;
-                // Mark the dice value used
-                //markUsedDice(roll, moveDistance, usedDice);
             }
         }
-        return moveCompleted;
+        return moveCompleted; // Return whether the move was successful
     }
 
-    // Function to processMoveFromBar
+    // Processes a move from the bar to a target pile
     protected boolean processMoveFromBar(Player currentPlayer, int endPilePosition) {
         Pile targetPile = board.getPile(endPilePosition - 1);
         Pile barPile = currentPlayer.getChecker() == Checker.Colour.WHITE ? board.getBarPile(Board.PLAYER1BARINDEX) : board.getBarPile(Board.PLAYER2BARINDEX);
@@ -222,6 +228,7 @@ public class Game {
         return true;
     }
 
+    // Generates a list of legal moves for the current player based on the dice roll
     protected List<String> generateLegalMoves(Player currentPlayer, int[] roll, boolean[] usedDice, boolean isDoubles) {
         // List to store legal moves
         List<String> legalMoves = new ArrayList<>();
@@ -300,6 +307,7 @@ public class Game {
         return legalMoves;
     }
 
+    // Generates legal non-double moves for the current player
     protected void generateNonDoubleMoves(int[] roll, boolean[] usedDice, int position, List<String> legalMoves, Player currentPlayer, boolean allInHomeRange, int direction) {
         Checker.Colour colour = currentPlayer.getChecker();
 
@@ -322,6 +330,7 @@ public class Game {
         }
     }
 
+    // Generates legal double moves for the current player
     protected void generateDoubleMoves(int roll, boolean[] usedDice, int position, List<String> legalMoves, Player currentPlayer, boolean allInHomeRange, int direction) {
         Checker.Colour colour = currentPlayer.getChecker();
 
@@ -349,15 +358,18 @@ public class Game {
         }
     }
 
+    // Checks if the target position is within bounds and the move is legal for the given color
     protected boolean isLegalTarget(int targetPosition, Checker.Colour colour) {
         return targetPosition >= 0 && targetPosition <= 23 && board.isLegalMove(targetPosition, colour);
     }
 
+    // Returns the home position for the current player based on direction (1 for Player 1, -1 for Player 2)
     protected int getHomePosition(int direction) {
         return direction == 1 ? 24 : -1;
     }
 
     // Function to move a checker between two piles
+    // Processes a move from startPos to endPos for the current player
     protected boolean processMove(Player currentPlayer, int startPos, int endPos) {
         Pile startPile = board.getPile(startPos - 1);
         Pile endPile = board.getPile(endPos - 1);
@@ -377,6 +389,7 @@ public class Game {
         return true;
     }
 
+    // Processes a move to the player's home pile
     protected boolean processMoveToHome(Player currentPlayer, int startPos) {
         Pile startPile = board.getPile(startPos - 1);
         Checker checkerToMove = startPile.removeTopChecker();
@@ -387,6 +400,7 @@ public class Game {
         return true;
     }
 
+    // Checks if all checkers of a player are within their home range
     protected boolean allCheckersInHomeRange(Player player) {
         Checker.Colour colour = player.getChecker();
         for (Pile pile : board.getPiles()) {
@@ -403,6 +417,7 @@ public class Game {
         return true;
     }
 
+    // Get the players win type
     public int getWinCondition(Player winningPlayer, Player otherPlayer) {
         int winningPlayerHomeIndex = (winningPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1HOMEINDEX : Board.PLAYER2HOMEINDEX;
         int losingPlayerHomeIndex = (otherPlayer.getChecker() == Checker.Colour.WHITE) ? Board.PLAYER1HOMEINDEX : Board.PLAYER2HOMEINDEX;
@@ -437,6 +452,7 @@ public class Game {
         }
     }
 
+    // Marks the dice as used after a move
     protected void markUsedDice(int[] roll, int moveDistance, boolean[] usedDice) {
 
         // If the user is playing doubles
@@ -467,6 +483,7 @@ public class Game {
         return remaining;
     }
 
+    // Function to display the players pip numbers
     public void displayPipNumbers(Player currentPlayer, boolean isPlayer1Turn) {
         System.out.println("Pip scores for " + currentPlayer.getName() + ":");
 
@@ -482,6 +499,7 @@ public class Game {
         }
     }
 
+    // Calculates the number of remaining moves based on unused dice
     public boolean isValidDicePair(String[] parts) {
         boolean isValid = true;
 
@@ -503,9 +521,7 @@ public class Game {
         return isValid;
     }
 
-    /*
-    Function to calculate and display the pip count for each player
-     */
+    // Function to calculate and display the pip count for each player
     protected void pipCount() {
         int noOfPipsWhite = 0;
         int noOfPipsBlack = 0;
@@ -563,11 +579,13 @@ public class Game {
         }
     }
 
+    // Displays a list of available game commands to the player
     protected void gameHelp() {
-        outputMessage("Enter 'roll' to roll the dice, 'Q' to quit the game, 'pip' to view pip count, 'double' to propose a double!");
+        outputMessage("Enter 'roll' to roll the dice, 'Q' to quit the game, 'pip' to view pip count, 'double' to propose a double or 'dice to set the dice values yourself'!");
         System.out.println();
     }
 
+    // Determines which player goes first by rolling the dice
     private void firstToPlay(Player player1, Player player2) {
         while (equalDice) {
             int[] startingRoll = dice.roll();
@@ -587,6 +605,7 @@ public class Game {
         }
     }
 
+    // Handles the process when a player proposes a double and the opponent accepts or declines
     protected boolean handleDoubleRequest(Player currentPlayer, Player otherPlayer, int otherPlayerNumber){
         boolean playOn = true;
         Scanner scanner = new Scanner(System.in);
@@ -616,9 +635,10 @@ public class Game {
         stake = DoubleDice.getDouble(); //stake equals new double amount
         doubleDice.setOwner(otherPlayerNumber); //set owner of double dice to opposition player
         outputMessage("The stakes have been doubled. This game is now worth " + DoubleDice.getDouble() + " points. " + otherPlayer.getName() + " is now the holder of the doubling dice.");
-        System.out.println("Enter your  next move " + currentPlayer.getName() + ", or 'hint' for a list of possible commands: ");
+        System.out.println("Enter your next move " + currentPlayer.getName() + ", or 'hint' for a list of possible commands: ");
     }
 
+    // Checks if the dice roll results in doubles
     protected boolean checkIfDoubles(int[] roll){
         boolean isDoubles;
         if(roll[0] == roll[1]){
@@ -696,6 +716,7 @@ public class Game {
         }
     }
 
+    // Allows the user to manually set the dice values
     protected void setDice() {
         Scanner scanner = new Scanner(System.in);
         int[] diceValues = new int[2];
@@ -733,6 +754,7 @@ public class Game {
         return roll;
     }
 
+    // Generates a marker array to track which dice have been used
     protected boolean[] generateDiceMarker(boolean isDoubles){
         boolean[] usedDice;
         if (isDoubles) {
@@ -743,3 +765,5 @@ public class Game {
         return usedDice;
     }
 }
+
+
