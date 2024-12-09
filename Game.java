@@ -80,13 +80,6 @@ public class Game {
                 String action = scanner.nextLine();// stores user input into 'action'
                 action = action.toUpperCase();
 
-                if(action.equals("Q")){
-                    gameInPlay = false;
-                    quitGame = true;
-                    errorMessage("Game Over!");
-                    break;
-                }
-
                 if (action.startsWith("TEST ")) {
                     String filename = action.substring(5).trim();
                     runTestFile(filename, player1, player2);
@@ -124,10 +117,9 @@ public class Game {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error reading test file: " + e.getMessage());
+            System.err.println("Error reading test file");
         }
     }
-
 
     // Processes a player's action based on their input
     protected boolean processAction(String action, Player currentPlayer, Player otherPlayer, int otherPlayerNumber) {
@@ -140,6 +132,13 @@ public class Game {
                 // Handle doubling the stakes; ends the game if declined
                 gameInPlay = handleDoubleRequest(currentPlayer, otherPlayer, otherPlayerNumber); // returns false if player declines
                 return !gameInPlay; // true if player declines
+            }
+
+            case "Q" -> {
+                gameInPlay = false;
+                quitGame = true;
+                errorMessage("Game Over!");
+                return true;
             }
 
             case "ROLL" -> {
@@ -622,7 +621,7 @@ public class Game {
     }
 
     // Determines which player goes first by rolling the dice
-    private void firstToPlay(Player player1, Player player2) {
+    protected void firstToPlay(Player player1, Player player2) {
         while (equalDice) {
             int[] startingRoll = dice.roll();
             int player1Roll = startingRoll[0];
