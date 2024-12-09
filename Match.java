@@ -2,17 +2,35 @@ import java.util.Scanner;
 
 public class Match {
     public static int pointsToWin; // the amount of points needed to win
-    public static boolean playAgain = true;
+    public static boolean playAgain = true; // a flag indicating whether to play another match
     private final Scanner scanner; // Declare the scanner field
 
+    /**
+     * Constructs a new {@code Match} object with the provided scanner for user input.
+     *
+     * @param scanner A {@code Scanner} object for reading user input.
+     */
     public Match(Scanner scanner){
         this.scanner = scanner;
     }
 
+    /**
+     * Creates a new {@code Game} object for the match.
+     * <p>
+     * This method can be overridden for custom game behavior.
+     *
+     * @return A new {@code Game} object.
+     */
     protected Game createGame() {
         return new Game();
     }
 
+    /**
+     * Starts and manages the match, consisting of multiple games.
+     * <p>
+     * Players take turns until one player reaches the required number of points to win the match.
+     * After the match ends, the user is prompted to play again or quit.
+     */
     public void playMatch() {
         while (playAgain) {
 
@@ -36,7 +54,9 @@ public class Match {
 
     /**
      * Prompts the user to enter the number of points needed to win the match.
-    **/
+     * <p>
+     * Validates the input to ensure it is a positive integer.
+     */
     public void getMatchPoints() {
         System.out.println("How many points would you like to play to?");
         boolean validPointsInput = false;

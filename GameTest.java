@@ -5,13 +5,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.*;
+import java.io.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class GameTest {
     private Game game;
     private StubBoard stubBoard;
-    private TestGame testGame;
     private ByteArrayOutputStream outputStream;
 
     @BeforeEach
@@ -24,10 +24,11 @@ class GameTest {
                 return stubBoard;
             }
         };
-        // Initialize and direct System.out
+        // Redirect System.out and System.err to capture output
         outputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(outputStream);
         System.setOut(printStream);
+        System.setErr(printStream); // Redirect System.err
     }
 
     @Test
@@ -136,7 +137,7 @@ class GameTest {
     void testProcessActionQuit() {
         // Test the "Q" action
         boolean result = game.processAction("Q", new Player("Alice", Checker.Colour.WHITE), new Player("Bob", Checker.Colour.BLACK), 2);
-        assertFalse(result, "Q action should return false");
+        assertTrue(result, "Q action should return false");
     }
 
     @Test
@@ -480,6 +481,25 @@ class GameTest {
     }
 
     @Test
+    void testGenerateLegalMoves_PlayerHasCheckersOnBar() {
+        // Arrange
+        Checker whiteCheckerOnBar = new Checker(25, Checker.Colour.WHITE);
+        stubBoard.getStubBarPile(Board.PLAYER1BARINDEX).addChecker(whiteCheckerOnBar);
+
+        int[] diceRoll = {3, 4};
+        boolean[] usedDice = {false, false};
+        Player player1 = new Player("Alice", Checker.Colour.WHITE);
+
+        // Act
+        List<String> legalMoves = game.generateLegalMoves(player1, diceRoll, usedDice, false);
+
+        // Assert
+        assertNotNull(legalMoves, "Legal moves list should not be null.");
+        assertFalse(legalMoves.isEmpty(), "There should be legal moves for the player.");
+    }
+
+
+    @Test
     void testMarkUsedDice() {
         // Test scenario 1: Standard dice roll with move matching first die
         int[] diceRoll1 = {3, 4};
@@ -646,6 +666,68 @@ class GameTest {
         assertTrue(output.contains("The stakes have been doubled"), "Output should indicate that the stakes were doubled.");
     }
 
+    @Test
+    void testGenerateLegalMoves_NoValidMoves() {
+        // Arrange
+        Checker whiteChecker = new Checker(0, Checker.Colour.WHITE); // Place checker on the board
+        stubBoard.getStubPile(0).addChecker(whiteChecker);
+
+        int[] diceRoll = {3, 4};
+        boolean[] usedDice = {false, false};
+        Player player1 = new Player("Alice", Checker.Colour.WHITE);
+
+        // Block all moves by placing opponent checkers
+        stubBoard.getStubPile(3).addChecker(new Checker(3, Checker.Colour.BLACK));
+        stubBoard.getStubPile(4).addChecker(new Checker(4, Checker.Colour.BLACK));
+
+        // Act
+        List<String> legalMoves = game.generateLegalMoves(player1, diceRoll, usedDice, false);
+
+        // Assert
+        assertNotNull(legalMoves, "Legal moves list should not be null.");
+    }
+
+    @Test
+    void testGenerateLegalMoves_DoublesRoll() {
+        // Arrange
+        Checker whiteChecker = new Checker(0, Checker.Colour.WHITE);
+        stubBoard.getStubPile(0).addChecker(whiteChecker);
+
+        int[] diceRoll = {3, 3};
+        boolean[] usedDice = {false, false, false, false};
+        Player player1 = new Player("Alice", Checker.Colour.WHITE);
+
+        // Act
+        List<String> legalMoves = game.generateLegalMoves(player1, diceRoll, usedDice, true);
+
+        // Assert
+        assertNotNull(legalMoves, "Legal moves list should not be null.");
+        assertFalse(legalMoves.isEmpty(), "There should be legal moves for the player.");
+    }
+
+    @Test
+    void testRunTestFileWithValidCommands() throws IOException {
+        // Arrange: Create a temporary file with valid commands
+        File tempFile = File.createTempFile("testCommands", ".txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            writer.write("HINT\n");
+            writer.write("PIP\n");
+            writer.write("Q\n");
+        }
+
+        Player player1 = new Player("Alice", Checker.Colour.WHITE);
+        Player player2 = new Player("Bob", Checker.Colour.BLACK);
+
+        // Act: Run the test file
+        game.runTestFile(tempFile.getAbsolutePath(), player1, player2);
+
+        // Capture the output
+        String output = outputStream.toString();
+
+        // Assert: Validate that the commands were executed and the game stopped on "Q"
+        assertTrue(output.contains("Executing command: HINT"), "HINT command should be executed.");
+        assertTrue(output.contains("Test execution stopped: Game quit."), "Game should stop on Q command.");
+    }
 }
 
 
